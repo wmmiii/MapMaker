@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Map Maker Mother Mucker</title>
+<link rel="stylesheet" type="text/css" href="css/main.css" />
+<script data-map="app" src="lib/require.js"></script>
+<script>
+let init = () => {
+  require.config({
+    paths: {
+      'Init': 'js/app'
+    }
+  });
+  require(['Init'], (init) => {
+    init.init();
+  });
+};
+</script>
+</head>
+<body onload="init()"> 
+<canvas id="canvas">
+</canvas>
+</body>
+<html>
+
