@@ -1,8 +1,10 @@
+import Edge from 'Edge';
+import Fill from 'Fill';
 import Map from 'Map';
 import {
   TileIndex,
   TileElementIndex,
-  TileElementType 
+  TileElement 
 } from 'Tile';
 import Vec from 'Vec';
 
@@ -10,7 +12,9 @@ export default class Renderer {
   private bgColor: string = "#efece8";
   private gridColor: string = "#d8d5d2";
   private hoverColor: string = "rgba(37, 188, 219, 0.4)";
+  private barrierColor: string = "#1c1711"
   private tileSize: number = 40;
+  private lineWidth: number = 2;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private offset: Vec;
@@ -25,11 +29,10 @@ export default class Renderer {
     this.offset = offset;
     this.clear();
     this.drawGrid();
-
+    this.drawMap(map);
     this.drawHovered(hovered);
   }
 
-  //PROTIP (will): Move everything into a single render method.
   private clear() {
     this.ctx.fillStyle = this.bgColor;
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -47,7 +50,7 @@ export default class Renderer {
 
     ctx.save();
     ctx.strokeStyle = this.gridColor;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = this.lineWidth;
     ctx.lineCap = "butt";
 
     for (let i = xShift; i <= canvasWidth; i += tileSize) {
@@ -65,6 +68,49 @@ export default class Renderer {
     ctx.restore();
   }
 
+  private drawMap(map: Map) {
+    const ctx = this.ctx;
+    ctx.save();
+
+    ctx.translate(this.offset.x, this.offset.y);
+    ctx.lineWidth = this.lineWidth;
+
+    for (var key in map.getTiles()) {
+      const tile = map.getTiles()[key];
+      console.log(tile);
+      if (tile.getSquare() === Fill.BARRIER) {
+        ctx.fillStyle = this.barrierColor;
+        this.fillSquare(tile.getIndex(), true);
+      }
+      if (tile.getUlFill() === Fill.BARRIER) {
+        ctx.fillStyle = this.barrierColor;
+        this.fillUl(tile.getIndex(), true);
+      }
+      if (tile.getUrFill() === Fill.BARRIER) {
+        ctx.fillStyle = this.barrierColor;
+        this.fillUr(tile.getIndex(), true);
+      }
+      if (tile.getLrFill() === Fill.BARRIER) {
+        ctx.fillStyle = this.barrierColor;
+        this.fillLr(tile.getIndex(), true);
+      }
+      if (tile.getLlFill() === Fill.BARRIER) {
+        ctx.fillStyle = this.barrierColor;
+        this.fillLl(tile.getIndex(), true);
+      }
+      if (tile.getTopEdge() === Edge.BARRIER) {
+        ctx.strokeStyle = this.barrierColor;
+        this.drawTopEdge(tile.getIndex());
+      }
+      if (tile.getLeftEdge() === Edge.BARRIER) {
+        ctx.strokeStyle = this.barrierColor;
+        this.drawLeftEdge(tile.getIndex());
+      }
+    }
+
+    ctx.restore();
+  }
+
   private drawHovered(hovered: TileElementIndex) {
     if (hovered === null) {
       return;
@@ -79,15 +125,27 @@ export default class Renderer {
     ctx.lineWidth = 8;
     ctx.lineCap = "round";
 
-    switch(hovered.element) {
-      case TileElementType.SQUARE:
-        this.drawSquare(hovered.index);
+    switch(hovered.elementType) {
+      case TileElement.SQUARE:
+        this.fillSquare(hovered.tileIndex);
         break;
-      case TileElementType.TOP_EDGE:
-        this.drawTopEdge(hovered.index);
+      case TileElement.TOP_EDGE:
+        this.drawTopEdge(hovered.tileIndex);
         break;
-      case TileElementType.LEFT_EDGE:
-        this.drawLeftEdge(hovered.index);
+      case TileElement.LEFT_EDGE:
+        this.drawLeftEdge(hovered.tileIndex);
+        break;
+      case TileElement.UPPER_LEFT:
+        this.fillUl(hovered.tileIndex);
+        break;
+      case TileElement.UPPER_RIGHT:
+        this.fillUr(hovered.tileIndex);
+        break;
+      case TileElement.LOWER_RIGHT:
+        this.fillLr(hovered.tileIndex);
+        break;
+      case TileElement.LOWER_LEFT:
+        this.fillLl(hovered.tileIndex);
         break;
     }
 
@@ -97,10 +155,14 @@ export default class Renderer {
   /**
    * Draws the square of a tile in map-space;
    */
-  private drawSquare(index: TileIndex) {
+  private fillSquare(index: TileIndex, includeEdges: boolean = false) {
     const tileSize = this.tileSize;
-    this.ctx.fillRect(index.x * tileSize, index.y * tileSize, 
+    this.ctx.fillRect(index.x * tileSize, index.y * tileSize,
                       tileSize, tileSize);
+    if (includeEdges) {
+      this.ctx.strokeRect(index.x * tileSize, index.y * tileSize,
+                          tileSize, tileSize);
+    }
 
   }
 
@@ -127,4 +189,57 @@ export default class Renderer {
     ctx.lineTo(index.x * tileSize, index.y * tileSize + tileSize);
     ctx.stroke();
   }
+
+  private fillUl(index: TileIndex, includeEdges: boolean = false) {
+    const ctx = this.ctx;
+    const tileSize = this.tileSize;
+    ctx.beginPath();
+    ctx.moveTo(index.x * tileSize, index.y * tileSize + tileSize);
+    ctx.lineTo(index.x * tileSize, index.y * tileSize);
+    ctx.lineTo(index.x * tileSize + tileSize, index.y * tileSize);
+    ctx.fill();
+    if (includeEdges) {
+      ctx.stroke();
+    }
+  }
+
+  private fillUr(index: TileIndex, includeEdges: boolean = false) {
+    const ctx = this.ctx;
+    const tileSize = this.tileSize;
+    ctx.beginPath();
+    ctx.moveTo(index.x * tileSize, index.y * tileSize);
+    ctx.lineTo(index.x * tileSize + tileSize, index.y * tileSize);
+    ctx.lineTo(index.x * tileSize + tileSize, index.y * tileSize + tileSize);
+    ctx.fill();
+    if (includeEdges) {
+      ctx.stroke();
+    }
+  }
+
+  private fillLr(index: TileIndex, includeEdges: boolean = false) {
+    const ctx = this.ctx;
+    const tileSize = this.tileSize;
+    ctx.beginPath();
+    ctx.moveTo(index.x * tileSize + tileSize, index.y * tileSize);
+    ctx.lineTo(index.x * tileSize + tileSize, index.y * tileSize + tileSize);
+    ctx.lineTo(index.x * tileSize, index.y * tileSize + tileSize);
+    ctx.fill();
+    if (includeEdges) {
+      ctx.stroke();
+    }
+  }
+
+  private fillLl(index: TileIndex, includeEdges: boolean = false) {
+    const ctx = this.ctx;
+    const tileSize = this.tileSize;
+    ctx.beginPath();
+    ctx.moveTo(index.x * tileSize + tileSize, index.y * tileSize + tileSize);
+    ctx.lineTo(index.x * tileSize, index.y * tileSize + tileSize);
+    ctx.lineTo(index.x * tileSize, index.y * tileSize);
+    ctx.fill();
+    if (includeEdges) {
+      ctx.stroke();
+    }
+  }
+
 };

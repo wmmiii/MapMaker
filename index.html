@@ -3,24 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <title>Map Maker Mother Mucker</title>
+<link href="https://fonts.googleapis.com/css?family=Titillium+Web:200" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="css/main.css" />
+<link rel="stylesheet" type="text/css" href="css/bottombar.css" />
 <script data-map="app" src="lib/require.js"></script>
 <script>
 let init = () => {
   require.config({
     paths: {
-      'Init': 'js/app'
+      'App': 'js/app'
     }
   });
-  require(['Init'], (init) => {
-    init.init();
+  require(['App'], (app) => {
+    app.init();
   });
 };
 </script>
 </head>
 <body onload="init()"> 
-<canvas id="canvas">
-</canvas>
+  <div id="canvas-container" tabindex="1">
+    <canvas id="canvas"></canvas>
+    <div class="overlay"></did>
+  </div>
+  <div id="bottom-bar">
+    <div id="toolbar">
+      <div id="button_BOX" class="button" title="ar">
+        Box
+      </div>
+      <div id="button_DIAG" class="button" title="s">
+        Diagonal
+      </div>
+      <div id="button_MOVE" class="button" title="f">
+        Move
+      </div>
+    </div>
+  </div>
 </body>
 <html>
 

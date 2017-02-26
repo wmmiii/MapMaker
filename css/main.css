@@ -1,13 +1,45 @@
 html, body {
-  position: relative;
+  font-family: 'Titillium Web', sans-serif;
   height: 100vh;
-  width: 100vw;
   margin: 0;
   padding: 0;
+  position: relative;
+  width: 100vw;
 }
 
-#canvas {
+#canvas-container {
+  bottom: 0;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+
+  z-index: 0;
+}
+
+#canvas-container .overlay {
+  bottom: 0;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.overlay.mode_MOVE {
+  cursor: move;
+}
+
+.overlay.mode_BOX,
+.overlay.mode_DIAG,
+.overlay.mode_SELECT {
+  cursor: pointer;
+}
+
+canvas {
   position: absolute;
   top: 0;
   left: 0;
 }
+
+

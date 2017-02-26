@@ -1,5 +1,3 @@
-import Edge from 'Edge';
-import Square from 'Square';
 import { Tile, TileIndex } from 'Tile';
 
 export default class Map {
@@ -11,6 +9,14 @@ export default class Map {
 
   getTile(index: TileIndex): Tile {
     return this.tileMap[this.stringify(index)];
+  }
+
+  getTiles(): Tile[] {
+    let tiles: Tile[] = [];
+    for (var key in this.tileMap) {
+      tiles.push(this.tileMap[key]);
+    }
+    return tiles;
   }
 
   addTile(tile: Tile): void {

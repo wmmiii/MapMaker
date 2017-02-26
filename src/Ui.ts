@@ -2,35 +2,41 @@ import Vec from 'Vec';
 
 export enum Mode {
   MOVE,
+  BOX,
+  DIAG,
   SELECT
 }
 
 export class Ui {
   private mode: Mode;
-  private body: HTMLElement;
-  private canvas: HTMLElement;
+  private container: HTMLElement;
+  private overlay: HTMLElement;
+  private toolbar: HTMLElement;
 
   private modeChangeAction: (mode: Mode) => void;
   private hoverAction: (cords: Vec) => void;
   private moveAction: (dist: Vec) => void;
   private moveEndAction: (dist: Vec) => void;
+  private selectAction: (cords: Vec) => void;
 
   private isMoving: boolean = false;
   private dragStart: Vec = new Vec(0, 0);
 
-  constructor(body: HTMLElement, canvas: HTMLElement) {
-    this.body = body;
-    this.canvas = canvas;
+  constructor(container: HTMLElement, toolbar: HTMLElement) {
+    this.container = container;
+    this.overlay = <HTMLElement> container.querySelector(".overlay");
+    this.toolbar = toolbar;
     
     this.modeChangeAction = (mode: Mode) => {};
     this.hoverAction = (cords: Vec) => {};
     this.moveAction = (dist: Vec) => {};
     this.moveEndAction = (dist: Vec) => {};
+    this.selectAction = (cords: Vec) => {};
 
     this.registerMouseEvents();
     this.registerKeyEvents();
 
-    this.changeMode(Mode.SELECT);
+    this.changeMode(Mode.BOX);
   }
 
   public onModeChange(action: (mode: Mode) => void) {
@@ -49,6 +55,10 @@ export class Ui {
     this.moveEndAction = action;
   }
 
+  public onSelect(action: (cords: Vec) => void) {
+    this.selectAction = action;
+  }
+
   private changeMode(mode: Mode): void {
     if (this.mode == mode) {
       return;
@@ -60,23 +70,40 @@ export class Ui {
         this.isMoving = false;
         break;
     }
-    this.body.classList.remove("mode_" + Mode[this.mode]);
+    this.overlay.classList.remove("mode_" + Mode[this.mode]);
+    let activeButton = 
+      this.toolbar.querySelector("#button_" + Mode[this.mode]);
+    if (activeButton !== null) {
+        activeButton.classList.remove("selected");
+    }
 
     // Set up new mode
     switch (mode) {
     }
-    this.body.classList.add("mode_" + Mode[mode]);
+    this.overlay.classList.add("mode_" + Mode[mode]);
+    let inactiveButton = 
+      this.toolbar.querySelector("#button_" + Mode[mode]);
+    if (inactiveButton !== null) {
+        inactiveButton.classList.add("selected");
+    }
 
     this.mode = mode;
     this.modeChangeAction(mode);
   }
 
   private registerMouseEvents() {
-    const canvas = this.canvas;
-    canvas.onmousedown = (e: MouseEvent) => {
-      if (this.mode === Mode.MOVE) {
-        this.dragStart = new Vec(e.clientX, e.clientY);
-        this.isMoving = true;
+    const overlay = this.overlay;
+    overlay.onmousedown = (e: MouseEvent) => {
+      switch (this.mode) {
+        case Mode.MOVE:
+          this.dragStart = new Vec(e.clientX, e.clientY);
+          this.isMoving = true;
+          break;
+        case Mode.BOX:
+        case Mode.DIAG:
+        default:
+          this.selectAction(new Vec(e.clientX, e.clientY));
+          break;
       }
     };
 
@@ -93,10 +120,10 @@ export class Ui {
       }
     };
 
-    canvas.onmouseup = mouseUp;
-    canvas.onmouseout = mouseUp;
+    overlay.onmouseup = mouseUp;
+    overlay.onmouseout = mouseUp;
 
-    canvas.onmousemove = (e: MouseEvent) => {
+    overlay.onmousemove = (e: MouseEvent) => {
       switch (this.mode) {
         case Mode.MOVE:
           if (!this.isMoving) {
@@ -106,19 +133,38 @@ export class Ui {
               e.clientX - this.dragStart.x,
               e.clientY - this.dragStart.y));
           break;
-        case Mode.SELECT:
+        case Mode.BOX:
+        case Mode.DIAG:
+        default:
          this.hoverAction(new Vec(e.clientX, e.clientY));
       }
     };
+
+    // Iterate over modes and register the buttons
+    for (let mode of Object.keys(Mode)
+                .map((key: any) => Mode[key])
+                .filter((value: any) => typeof value === "number")
+                .map((value: any) => <number> value)) {
+      const button = <HTMLElement> this.toolbar
+          .querySelector("#button_" + Mode[mode]);
+      if (button !== null) {
+        button.onclick = () => {
+          this.changeMode(mode);
+        };
+      }
+    }
   }
 
   private registerKeyEvents() {
-    this.body.onkeydown = (e: KeyboardEvent) => {
+    this.container.onkeydown = (e: KeyboardEvent) => {
       switch (e.keyCode) {
-        case 32: // spacebar
-          this.changeMode(Mode.SELECT);
+        case 65: // a
+          this.changeMode(Mode.BOX);
           break;
-        case 77: // m
+        case 83: // s
+          this.changeMode(Mode.DIAG);
+          break;
+        case 68: //d
           this.changeMode(Mode.MOVE);
           break;
         default:
