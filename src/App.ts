@@ -7,7 +7,9 @@ import {
   Tile,
   TileIndex,
   TileElementIndex,
-  TileElement
+  TileElement,
+  isEdge,
+  isFill
 } from 'Tile';
 import { Ui, Mode } from 'Ui';
 import Vec from 'Vec';
@@ -84,56 +86,19 @@ export class App {
         this.map.addTile(tile);
       }
 
-      switch (elementIndex.elementType) {
-       case TileElement.SQUARE:
-          if (tile.getSquare() === Fill.NONE) {
-            tile.setSquare(Fill.BARRIER);
-          } else {
-            tile.setSquare(Fill.NONE);
-          }
-          break;
-       case TileElement.TOP_EDGE:
-          if (tile.getTopEdge() === Edge.NONE) {
-            tile.setTopEdge(Edge.BARRIER);
-          } else {
-            tile.setTopEdge(Edge.NONE);
-          }
-          break;
-        case TileElement.LEFT_EDGE:
-          if (tile.getLeftEdge() === Edge.NONE) {
-            tile.setLeftEdge(Edge.BARRIER);
-          } else {
-            tile.setLeftEdge(Edge.NONE);
-          }
-          break;
-        case TileElement.UPPER_LEFT:
-          if (tile.getUlFill() === Fill.NONE) {
-            tile.setUlFill(Fill.BARRIER);
-          } else {
-            tile.setUlFill(Fill.NONE);
-          }
-          break;
-        case TileElement.UPPER_RIGHT:
-          if (tile.getUrFill() === Fill.NONE) {
-            tile.setUrFill(Fill.BARRIER);
-          } else {
-            tile.setUrFill(Fill.NONE);
-          }
-          break;
-        case TileElement.LOWER_RIGHT:
-          if (tile.getLrFill() === Fill.NONE) {
-            tile.setLrFill(Fill.BARRIER);
-          } else {
-            tile.setLrFill(Fill.NONE);
-          }
-          break;
-        case TileElement.LOWER_LEFT:
-          if (tile.getLlFill() === Fill.NONE) {
-            tile.setLlFill(Fill.BARRIER);
-          } else {
-            tile.setLlFill(Fill.NONE);
-          }
-          break;
+      const et = elementIndex.elementType
+      if (isEdge(et)) {
+        if (tile.getEdge(et) === Edge.NONE) {
+          tile.setEdge(et, Edge.BARRIER);
+        } else {
+          tile.setEdge(et, Edge.NONE);
+        }
+      } else if (isFill(et)) {
+        if (tile.getFill(et) === Fill.NONE) {
+          tile.setFill(et, Fill.BARRIER);
+        } else {
+          tile.setFill(et, Fill.NONE);
+        }
       }
       
       if (tile.noState()) {

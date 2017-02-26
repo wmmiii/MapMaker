@@ -78,31 +78,36 @@ export default class Renderer {
     for (var key in map.getTiles()) {
       const tile = map.getTiles()[key];
       console.log(tile);
-      if (tile.getSquare() === Fill.BARRIER) {
+      if (tile.getFill(TileElement.SQUARE) === Fill.BARRIER) {
+        ctx.strokeStyle = this.barrierColor;
         ctx.fillStyle = this.barrierColor;
         this.fillSquare(tile.getIndex(), true);
       }
-      if (tile.getUlFill() === Fill.BARRIER) {
+      if (tile.getFill(TileElement.UPPER_LEFT) === Fill.BARRIER) {
+        ctx.strokeStyle = this.barrierColor;
         ctx.fillStyle = this.barrierColor;
         this.fillUl(tile.getIndex(), true);
       }
-      if (tile.getUrFill() === Fill.BARRIER) {
+      if (tile.getFill(TileElement.UPPER_RIGHT) === Fill.BARRIER) {
+        ctx.strokeStyle = this.barrierColor;
         ctx.fillStyle = this.barrierColor;
         this.fillUr(tile.getIndex(), true);
       }
-      if (tile.getLrFill() === Fill.BARRIER) {
+      if (tile.getFill(TileElement.LOWER_RIGHT) === Fill.BARRIER) {
+        ctx.strokeStyle = this.barrierColor;
         ctx.fillStyle = this.barrierColor;
         this.fillLr(tile.getIndex(), true);
       }
-      if (tile.getLlFill() === Fill.BARRIER) {
+      if (tile.getFill(TileElement.LOWER_LEFT) === Fill.BARRIER) {
+        ctx.strokeStyle = this.barrierColor;
         ctx.fillStyle = this.barrierColor;
         this.fillLl(tile.getIndex(), true);
       }
-      if (tile.getTopEdge() === Edge.BARRIER) {
+      if (tile.getEdge(TileElement.TOP_EDGE) === Edge.BARRIER) {
         ctx.strokeStyle = this.barrierColor;
         this.drawTopEdge(tile.getIndex());
       }
-      if (tile.getLeftEdge() === Edge.BARRIER) {
+      if (tile.getEdge(TileElement.LEFT_EDGE) === Edge.BARRIER) {
         ctx.strokeStyle = this.barrierColor;
         this.drawLeftEdge(tile.getIndex());
       }

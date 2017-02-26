@@ -1,11 +1,8 @@
-import Edge from 'Edge';
-import Fill from 'Fill';
-
 export class Tile {
   private index: TileIndex;
 
-  private edgeElements: {[key: TileElement]: Edge};
-  private fillElements: {[key: TileElement]: Fill};
+  private edgeElements: {[key: string]: Edge};
+  private fillElements: {[key: string]: Fill};
 
   constructor(index: TileIndex) {
     this.index = index;
@@ -14,13 +11,17 @@ export class Tile {
   }
 
   noState(): boolean {
-    return this.square === Fill.NONE
-        && this.topEdge === Edge.NONE
-        && this.leftEdge === Edge.NONE
-        && this.ulFill == Fill.NONE
-        && this.urFill == Fill.NONE
-        && this.lrFill == Fill.NONE
-        && this.llFill == Fill.NONE;
+    for (let key in this.edgeElements) {
+      if (this.edgeElements[key] !== Edge.NONE) {
+        return false;
+      }
+    }
+    for (let key in this.fillElements) {
+      if (this.edgeElements[key] !== Edge.NONE) {
+        return false;
+      }
+    }
+    return true;
   }
 
   getIndex(): TileIndex {
@@ -28,93 +29,45 @@ export class Tile {
   }
 
   getEdge(tileElement: TileElement): Edge {
+    const edgeElements = this.edgeElements;
+    const stringify = this.stringify;
     if (!isEdge(tileElement)) {
       throw new TypeError();
     }
-    if (edgeElements[tileElement] === null) {
-      edegeElements[tileElement] === null;
+    if (edgeElements[stringify(tileElement)] == null) {
+      edgeElements[stringify(tileElement)] = Edge.NONE;
     }
-    return edgeElements[tileElement];
+    return edgeElements[stringify(tileElement)];
   }
 
   setEdge(tileElement: TileElement, edge: Edge): void {
     if (!isEdge(tileElement)) {
       throw new TypeError();
     }
-    edegeElements[tileElement] === edge;
+    this.edgeElements[this.stringify(tileElement)] = edge;
   }
  
-  getFill(tileElement: TileElement): Edge {
+  getFill(tileElement: TileElement): Fill {
+    const fillElements = this.fillElements;
+    const stringify = this.stringify;
     if (!isFill(tileElement)) {
       throw new TypeError();
     }
-    if (fillElements[tileElement] === null) {
-      fillElements[tileElement] === null;
+    if (fillElements[stringify(tileElement)] == null) {
+      fillElements[stringify(tileElement)] = Fill.NONE;
     }
-    return fillElements[tileElement];
+    return fillElements[this.stringify(tileElement)];
   }
 
   setFill(tileElement: TileElement, fill: Fill): void {
     if (!isFill(tileElement)) {
       throw new TypeError();
     }
-    edegeElements[tileElement] === fill;
+    this.fillElements[this.stringify(tileElement)] = fill;
   }
 
-  getSquare(): Fill {
-    return this.square;
-  }
-
-  setSquare(square: Fill): void {
-    this.square = square;
-  }
-
-  getTopEdge(): Edge {
-    return this.topEdge;
-  }
-
-  setTopEdge(topEdge: Edge): void {
-    this.topEdge = topEdge;
-  }
-
-  getLeftEdge(): Edge {
-    return this.leftEdge;
-  }
-
-  setLeftEdge(leftEdge: Edge): void {
-    this.leftEdge = leftEdge;
-  }
-
-  getUlFill(): Fill {
-    return this.ulFill;
-  }
-
-  setUlFill(ulFill: Fill): void {
-    this.ulFill = ulFill;
-  }
-
-  getUrFill(): Fill {
-    return this.urFill;
-  }
-
-  setUrFill(urFill: Fill): void {
-    this.urFill = urFill;
-  }
-
-  getLrFill(): Fill {
-    return this.lrFill;
-  }
-
-  setLrFill(lrFill: Fill): void {
-    this.lrFill = lrFill;
-  }
-
-  getLlFill(): Fill {
-    return this.llFill;
-  }
-
-  setLlFill(llFill: Fill): void {
-    this.llFill = llFill;
+  private stringify(element: TileElement) {
+    return TileElement[element];
   }
 }
 
@@ -153,9 +106,9 @@ export enum Edge {
   BARRIER
 }
 
-export function isEdge(tileElement: tileElement) {
+export function isEdge(tileElement: TileElement) {
   return tileElement === TileElement.TOP_EDGE
-      || tileELement === TileElement.LEFT_EDGE;
+      || tileElement === TileElement.LEFT_EDGE;
 }
 
 export enum Fill {
