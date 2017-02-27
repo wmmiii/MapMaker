@@ -1,12 +1,13 @@
 import Edge from 'Edge';
 import Fill from 'Fill';
-import Map from 'Map';
+import GameMap from 'GameMap';
 import {
   TileIndex,
-  TileElementIndex,
-  TileElement 
+  TileRegion,
+  TileRegionIndex
 } from 'Tile';
 import Vec from 'Vec';
+import { WallEdge, WallFill } from 'Wall';
 
 export default class Renderer {
   private bgColor: string = "#efece8";
@@ -25,12 +26,14 @@ export default class Renderer {
     this.tileSize = tileSize;
   }
 
-  public render(map: Map, offset: Vec, hovered: TileElementIndex) {
+  public render(map: GameMap, offset: Vec, hovered: TileRegionIndex[]) {
     this.offset = offset;
     this.clear();
     this.drawGrid();
     this.drawMap(map);
-    this.drawHovered(hovered);
+    if (hovered !== null && hovered.length !== 0) {
+      this.drawHovered(hovered);
+    }
   }
 
   private clear() {
@@ -68,59 +71,34 @@ export default class Renderer {
     ctx.restore();
   }
 
-  private drawMap(map: Map) {
+  private drawMap(map: GameMap) {
     const ctx = this.ctx;
     ctx.save();
 
     ctx.translate(this.offset.x, this.offset.y);
     ctx.lineWidth = this.lineWidth;
 
-    for (var key in map.getTiles()) {
-      const tile = map.getTiles()[key];
-      console.log(tile);
-      if (tile.getFill(TileElement.SQUARE) === Fill.BARRIER) {
-        ctx.strokeStyle = this.barrierColor;
-        ctx.fillStyle = this.barrierColor;
-        this.fillSquare(tile.getIndex(), true);
-      }
-      if (tile.getFill(TileElement.UPPER_LEFT) === Fill.BARRIER) {
-        ctx.strokeStyle = this.barrierColor;
-        ctx.fillStyle = this.barrierColor;
-        this.fillUl(tile.getIndex(), true);
-      }
-      if (tile.getFill(TileElement.UPPER_RIGHT) === Fill.BARRIER) {
-        ctx.strokeStyle = this.barrierColor;
-        ctx.fillStyle = this.barrierColor;
-        this.fillUr(tile.getIndex(), true);
-      }
-      if (tile.getFill(TileElement.LOWER_RIGHT) === Fill.BARRIER) {
-        ctx.strokeStyle = this.barrierColor;
-        ctx.fillStyle = this.barrierColor;
-        this.fillLr(tile.getIndex(), true);
-      }
-      if (tile.getFill(TileElement.LOWER_LEFT) === Fill.BARRIER) {
-        ctx.strokeStyle = this.barrierColor;
-        ctx.fillStyle = this.barrierColor;
-        this.fillLl(tile.getIndex(), true);
-      }
-      if (tile.getEdge(TileElement.TOP_EDGE) === Edge.BARRIER) {
-        ctx.strokeStyle = this.barrierColor;
-        this.drawTopEdge(tile.getIndex());
-      }
-      if (tile.getEdge(TileElement.LEFT_EDGE) === Edge.BARRIER) {
-        ctx.strokeStyle = this.barrierColor;
-        this.drawLeftEdge(tile.getIndex());
-      }
-    }
+    map.getTiles().forEach((tile) => {
+      tile.getWallEdges().forEach((edge: WallEdge, region: TileRegion) => {
+        if (edge === WallEdge.BARRIER) {
+          ctx.strokeStyle = this.barrierColor;
+          ctx.fillStyle = this.barrierColor;
+          this.drawRegion(new TileRegionIndex(tile.index, region), true);
+        }
+      });
+      tile.getWallFills().forEach((fill: WallFill, region: TileRegion) => {
+        if (fill === WallFill.BARRIER) {
+          ctx.strokeStyle = this.barrierColor;
+          ctx.fillStyle = this.barrierColor;
+          this.drawRegion(new TileRegionIndex(tile.index, region), true);
+        }
+      });
+    });
 
     ctx.restore();
   }
 
-  private drawHovered(hovered: TileElementIndex) {
-    if (hovered === null) {
-      return;
-    }
-    
+  private drawHovered(hovered: TileRegionIndex[]) {
     const ctx = this.ctx;
     ctx.save();
 
@@ -130,121 +108,98 @@ export default class Renderer {
     ctx.lineWidth = 8;
     ctx.lineCap = "round";
 
-    switch(hovered.elementType) {
-      case TileElement.SQUARE:
-        this.fillSquare(hovered.tileIndex);
+    hovered.forEach(tileRegion => this.drawRegion(tileRegion));
+
+    ctx.restore();
+  }
+
+  private drawRegion(regionIndex: TileRegionIndex, includeEdges: boolean = false) {
+    const tileSize = this.tileSize;
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(regionIndex.tileIndex.x * tileSize, regionIndex.tileIndex.y * tileSize);
+
+    switch (regionIndex.tileRegion) {
+      case TileRegion.TOP_EDGE:
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(tileSize, 0);
+        ctx.stroke();
         break;
-      case TileElement.TOP_EDGE:
-        this.drawTopEdge(hovered.tileIndex);
+
+      case TileRegion.LEFT_EDGE:
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, tileSize);
+        ctx.stroke();
         break;
-      case TileElement.LEFT_EDGE:
-        this.drawLeftEdge(hovered.tileIndex);
+
+      case TileRegion.NW_CROSS:
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(tileSize, tileSize);
+        ctx.stroke();
         break;
-      case TileElement.UPPER_LEFT:
-        this.fillUl(hovered.tileIndex);
+
+      case TileRegion.NE_CROSS:
+        ctx.beginPath();
+        ctx.moveTo(tileSize, 0);
+        ctx.lineTo(0, tileSize);
+        ctx.stroke();
         break;
-      case TileElement.UPPER_RIGHT:
-        this.fillUr(hovered.tileIndex);
+
+      case TileRegion.SQUARE:
+        ctx.fillRect(0, 0, tileSize, tileSize);
+        if (includeEdges) {
+          ctx.strokeRect(0, 0, tileSize, tileSize);
+        }
         break;
-      case TileElement.LOWER_RIGHT:
-        this.fillLr(hovered.tileIndex);
+
+      case TileRegion.UPPER_LEFT:
+        ctx.beginPath();
+        ctx.moveTo(0, tileSize);
+        ctx.lineTo(0, 0);
+        ctx.lineTo(tileSize, 0);
+        ctx.fill();
+        if (includeEdges) {
+          ctx.stroke();
+        }
         break;
-      case TileElement.LOWER_LEFT:
-        this.fillLl(hovered.tileIndex);
+
+      case TileRegion.UPPER_RIGHT:
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(tileSize, 0);
+        ctx.lineTo(tileSize, tileSize);
+        ctx.fill();
+        if (includeEdges) {
+          ctx.stroke();
+        }
+        break;
+
+      case TileRegion.LOWER_RIGHT:
+        ctx.beginPath();
+        ctx.moveTo(tileSize, 0);
+        ctx.lineTo(tileSize, tileSize);
+        ctx.lineTo(0, tileSize);
+        ctx.fill();
+        if (includeEdges) {
+          ctx.stroke();
+        }
+        break;
+
+      case TileRegion.LOWER_LEFT:
+        ctx.beginPath();
+        ctx.moveTo(tileSize, tileSize);
+        ctx.lineTo(0, tileSize);
+        ctx.lineTo(0, 0);
+        ctx.fill();
+        if (includeEdges) {
+          ctx.stroke();
+        }
         break;
     }
 
     ctx.restore();
   }
-
-  /**
-   * Draws the square of a tile in map-space;
-   */
-  private fillSquare(index: TileIndex, includeEdges: boolean = false) {
-    const tileSize = this.tileSize;
-    this.ctx.fillRect(index.x * tileSize, index.y * tileSize,
-                      tileSize, tileSize);
-    if (includeEdges) {
-      this.ctx.strokeRect(index.x * tileSize, index.y * tileSize,
-                          tileSize, tileSize);
-    }
-
-  }
-
-  /**
-   * Draws the top edge of a tile in map-space.
-   */
-  private drawTopEdge(index: TileIndex) {
-    const ctx = this.ctx;
-    const tileSize = this.tileSize;
-    ctx.beginPath();
-    ctx.moveTo(index.x * tileSize, index.y * tileSize);
-    ctx.lineTo(index.x * tileSize + tileSize, index.y * tileSize);
-    ctx.stroke();
-  }
-
-  /**
-   * Draws the left edge of a tile in map-space.
-   */
-  private drawLeftEdge(index: TileIndex) {
-    const ctx = this.ctx;
-    const tileSize = this.tileSize;
-    ctx.beginPath();
-    ctx.moveTo(index.x * tileSize, index.y * tileSize);
-    ctx.lineTo(index.x * tileSize, index.y * tileSize + tileSize);
-    ctx.stroke();
-  }
-
-  private fillUl(index: TileIndex, includeEdges: boolean = false) {
-    const ctx = this.ctx;
-    const tileSize = this.tileSize;
-    ctx.beginPath();
-    ctx.moveTo(index.x * tileSize, index.y * tileSize + tileSize);
-    ctx.lineTo(index.x * tileSize, index.y * tileSize);
-    ctx.lineTo(index.x * tileSize + tileSize, index.y * tileSize);
-    ctx.fill();
-    if (includeEdges) {
-      ctx.stroke();
-    }
-  }
-
-  private fillUr(index: TileIndex, includeEdges: boolean = false) {
-    const ctx = this.ctx;
-    const tileSize = this.tileSize;
-    ctx.beginPath();
-    ctx.moveTo(index.x * tileSize, index.y * tileSize);
-    ctx.lineTo(index.x * tileSize + tileSize, index.y * tileSize);
-    ctx.lineTo(index.x * tileSize + tileSize, index.y * tileSize + tileSize);
-    ctx.fill();
-    if (includeEdges) {
-      ctx.stroke();
-    }
-  }
-
-  private fillLr(index: TileIndex, includeEdges: boolean = false) {
-    const ctx = this.ctx;
-    const tileSize = this.tileSize;
-    ctx.beginPath();
-    ctx.moveTo(index.x * tileSize + tileSize, index.y * tileSize);
-    ctx.lineTo(index.x * tileSize + tileSize, index.y * tileSize + tileSize);
-    ctx.lineTo(index.x * tileSize, index.y * tileSize + tileSize);
-    ctx.fill();
-    if (includeEdges) {
-      ctx.stroke();
-    }
-  }
-
-  private fillLl(index: TileIndex, includeEdges: boolean = false) {
-    const ctx = this.ctx;
-    const tileSize = this.tileSize;
-    ctx.beginPath();
-    ctx.moveTo(index.x * tileSize + tileSize, index.y * tileSize + tileSize);
-    ctx.lineTo(index.x * tileSize, index.y * tileSize + tileSize);
-    ctx.lineTo(index.x * tileSize, index.y * tileSize);
-    ctx.fill();
-    if (includeEdges) {
-      ctx.stroke();
-    }
-  }
-
 };

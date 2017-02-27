@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
     "module": "amd",
+    "target": "es6",
     "noImplicitAny": true,
     "removeComments": true,
     "preserveConstEnums": true,
     "outFile": "js/app.js",
     "sourceMap": true,
-    "sourceRoot": "/m3/src"
+    "sourceRoot": "src"
   },
   "include": [
     "src/**/*"

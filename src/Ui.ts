@@ -14,24 +14,26 @@ export class Ui {
   private toolbar: HTMLElement;
 
   private modeChangeAction: (mode: Mode) => void;
-  private hoverAction: (cords: Vec) => void;
+  private hoverAction: (startCoords: Vec, endCoords: Vec) => void;
+  private hoverEndAction: () => void;
   private moveAction: (dist: Vec) => void;
   private moveEndAction: (dist: Vec) => void;
-  private selectAction: (cords: Vec) => void;
+  private selectAction: (startCoords: Vec, endCoords: Vec) => void;
 
-  private isMoving: boolean = false;
-  private dragStart: Vec = new Vec(0, 0);
+  private isMouseDown: boolean = false;
+  private mouseDown: Vec = new Vec(0, 0);
 
   constructor(container: HTMLElement, toolbar: HTMLElement) {
     this.container = container;
     this.overlay = <HTMLElement> container.querySelector(".overlay");
     this.toolbar = toolbar;
     
-    this.modeChangeAction = (mode: Mode) => {};
-    this.hoverAction = (cords: Vec) => {};
-    this.moveAction = (dist: Vec) => {};
-    this.moveEndAction = (dist: Vec) => {};
-    this.selectAction = (cords: Vec) => {};
+    this.modeChangeAction = () => {};
+    this.hoverAction = () => {};
+    this.hoverEndAction = () => {};
+    this.moveAction = () => {};
+    this.moveEndAction = () => {};
+    this.selectAction = () => {};
 
     this.registerMouseEvents();
     this.registerKeyEvents();
@@ -43,8 +45,12 @@ export class Ui {
     this.modeChangeAction = action;
   }
 
-  public onHover(action: (cords: Vec) => void) {
+  public onHover(action: (startCoords: Vec, endCoords: Vec) => void) {
     this.hoverAction = action;
+  }
+
+  public onHoverEnd(action: () => void) {
+    this.hoverEndAction = action;
   }
 
   public onMove(action: (dist: Vec) => void) {
@@ -55,7 +61,7 @@ export class Ui {
     this.moveEndAction = action;
   }
 
-  public onSelect(action: (cords: Vec) => void) {
+  public onSelect(action: (startCoords: Vec, endCoords: Vec) => void) {
     this.selectAction = action;
   }
 
@@ -67,7 +73,7 @@ export class Ui {
     // Tear down old mode
     switch (this.mode) {
       case Mode.MOVE:
-        this.isMoving = false;
+        this.isMouseDown = false;
         break;
     }
     this.overlay.classList.remove("mode_" + Mode[this.mode]);
@@ -94,49 +100,67 @@ export class Ui {
   private registerMouseEvents() {
     const overlay = this.overlay;
     overlay.onmousedown = (e: MouseEvent) => {
+      this.mouseDown = new Vec(e.clientX, e.clientY);
+      this.isMouseDown = true;
+    };
+
+    overlay.onmouseup = (e: MouseEvent) => {
       switch (this.mode) {
         case Mode.MOVE:
-          this.dragStart = new Vec(e.clientX, e.clientY);
-          this.isMoving = true;
+          if (this.isMouseDown) {
+            this.moveEndAction(new Vec(
+              e.clientX - this.mouseDown.x, 
+              e.clientY - this.mouseDown.y));
+          }
           break;
+
+        default:
+          if (this.isMouseDown) {
+            this.selectAction(this.mouseDown, new Vec(e.clientX, e.clientY));
+          }
+      }
+      this.isMouseDown = false;
+    };
+    
+    overlay.onmouseout = (e: MouseEvent) => {
+      switch (this.mode) {
+        case Mode.MOVE:
+          if (this.isMouseDown) {
+            this.moveEndAction(new Vec(
+              e.clientX - this.mouseDown.x, 
+              e.clientY - this.mouseDown.y));
+          }
+          break;
+
         case Mode.BOX:
         case Mode.DIAG:
         default:
-          this.selectAction(new Vec(e.clientX, e.clientY));
-          break;
-      }
-    };
+          this.hoverEndAction();
 
-    const mouseUp = (e: MouseEvent) => {
-      switch (this.mode) {
-        case Mode.MOVE:
-          if (this.isMoving) {
-            this.moveEndAction(new Vec(
-              e.clientX - this.dragStart.x, 
-              e.clientY - this.dragStart.y));
-          }
-          this.isMoving = false;
-          break;
       }
+      this.isMouseDown = false;
     };
-
-    overlay.onmouseup = mouseUp;
-    overlay.onmouseout = mouseUp;
 
     overlay.onmousemove = (e: MouseEvent) => {
       switch (this.mode) {
         case Mode.MOVE:
-          if (!this.isMoving) {
+          if (!this.isMouseDown) {
             break;
           }
           this.moveAction(new Vec(
-              e.clientX - this.dragStart.x,
-              e.clientY - this.dragStart.y));
+              e.clientX - this.mouseDown.x,
+              e.clientY - this.mouseDown.y));
           break;
+
         case Mode.BOX:
         case Mode.DIAG:
         default:
-         this.hoverAction(new Vec(e.clientX, e.clientY));
+          const currentPos = new Vec(e.clientX, e.clientY);
+          if (this.isMouseDown) {
+            this.hoverAction(this.mouseDown, currentPos);
+          } else {
+            this.hoverAction(currentPos, currentPos);
+          }
       }
     };
 

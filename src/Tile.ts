@@ -1,125 +1,129 @@
-export class Tile {
-  private index: TileIndex;
+import { WallEdge, WallFill } from 'Wall';
 
-  private edgeElements: {[key: string]: Edge};
-  private fillElements: {[key: string]: Fill};
+export class Tile {
+  readonly index: TileIndex;
+
+  private wallEdgeRegions: Map<TileRegion, WallEdge>;
+  private wallFillRegions: Map<TileRegion, WallFill>;
 
   constructor(index: TileIndex) {
     this.index = index;
-    this.edgeElements = {};
-    this.fillElements = {};
+    this.wallEdgeRegions = new Map();
+    this.wallFillRegions = new Map();
   }
 
   noState(): boolean {
-    for (let key in this.edgeElements) {
-      if (this.edgeElements[key] !== Edge.NONE) {
-        return false;
-      }
-    }
-    for (let key in this.fillElements) {
-      if (this.edgeElements[key] !== Edge.NONE) {
-        return false;
-      }
-    }
-    return true;
+    const hasWallEdge = [...this.wallEdgeRegions.values()].some(edge => edge !== WallEdge.NONE);
+    const hasWallFill = [...this.wallFillRegions.values()].some(fill => fill !== WallFill.NONE);
+    return !(hasWallEdge || hasWallFill);
   }
 
-  getIndex(): TileIndex {
-    return this.index;
+  getWallEdges(): Map<TileRegion, WallEdge> {
+    return this.wallEdgeRegions;
   }
 
-  getEdge(tileElement: TileElement): Edge {
-    const edgeElements = this.edgeElements;
-    const stringify = this.stringify;
-    if (!isEdge(tileElement)) {
-      throw new TypeError();
+  getWallEdge(region: TileRegion): WallEdge {
+    if (!region.isEdge()) {
+      throw new TypeError("Tried to get wall edge style of non-edge region.");
     }
-    if (edgeElements[stringify(tileElement)] == null) {
-      edgeElements[stringify(tileElement)] = Edge.NONE;
+    const edgeRegions = this.wallEdgeRegions;
+    if (!edgeRegions.get(region)) {
+      edgeRegions.set(region, WallEdge.NONE);
     }
-    return edgeElements[stringify(tileElement)];
+    return edgeRegions.get(region);
   }
 
-  setEdge(tileElement: TileElement, edge: Edge): void {
-    if (!isEdge(tileElement)) {
-      throw new TypeError();
+  setWallEdge(region: TileRegion, edge: WallEdge): void {
+    if (!region.isEdge()) {
+      throw new TypeError("Tried to set wall edge style of non-edge region.");
     }
-    this.edgeElements[this.stringify(tileElement)] = edge;
-  }
- 
-  getFill(tileElement: TileElement): Fill {
-    const fillElements = this.fillElements;
-    const stringify = this.stringify;
-    if (!isFill(tileElement)) {
-      throw new TypeError();
-    }
-    if (fillElements[stringify(tileElement)] == null) {
-      fillElements[stringify(tileElement)] = Fill.NONE;
-    }
-    return fillElements[this.stringify(tileElement)];
+    this.wallEdgeRegions.set(region, edge);
   }
 
-  setFill(tileElement: TileElement, fill: Fill): void {
-    if (!isFill(tileElement)) {
-      throw new TypeError();
-    }
-    this.fillElements[this.stringify(tileElement)] = fill;
+  getWallFills(): Map<TileRegion, WallFill> {
+    return this.wallFillRegions;
   }
 
-  private stringify(element: TileElement) {
-    return TileElement[element];
+  getWallFill(region: TileRegion): WallFill {
+    if (!region.isFill()) {
+      throw new TypeError("Tried to get wall fill style of non-fill region.");
+    }
+    const fillRegions = this.wallFillRegions;
+    if (!fillRegions.get(region)) {
+      fillRegions.set(region, WallFill.NONE);
+    }
+    return fillRegions.get(region);
+  }
+
+  setWallFill(region: TileRegion, fill: WallFill): void {
+    if (!region.isFill()) {
+      throw new TypeError("Tried to set wall fill style of non-fill region.");
+    }
+    this.wallFillRegions.set(region, fill);
   }
 }
 
 export class TileIndex {
+  private static indicies: any = {};
   readonly x: number;
   readonly y: number;
 
-  constructor(x: number, y: number) {
+  static of(x: number, y: number) {
+    if (TileIndex.indicies[x] == null) {
+      TileIndex.indicies[x] = {};
+      TileIndex.indicies[x][y] = new TileIndex(x, y);
+    } else if (TileIndex.indicies[x][y] == null) {
+      TileIndex.indicies[x][y] = new TileIndex(x, y);
+    }
+
+    return TileIndex.indicies[x][y];
+  }
+
+  private constructor(x: number, y: number) {
     this.x = x;
     this.y = y;
   }
 }
 
-export enum TileElement {
-  SQUARE,
-  TOP_EDGE,
-  LEFT_EDGE,
-  UPPER_LEFT,
-  UPPER_RIGHT,
-  LOWER_RIGHT,
-  LOWER_LEFT
+enum RegionType {
+  EDGE,
+  FILL
 }
 
-export class TileElementIndex {
-  readonly tileIndex: TileIndex;
-  readonly elementType: TileElement;
+export class TileRegion {
+  static readonly TOP_EDGE: TileRegion = new TileRegion(RegionType.EDGE);
+  static readonly LEFT_EDGE: TileRegion = new TileRegion(RegionType.EDGE);
+  static readonly NW_CROSS: TileRegion = new TileRegion(RegionType.EDGE);
+  static readonly NE_CROSS: TileRegion = new TileRegion(RegionType.EDGE);
 
-  constructor(tileIndex: TileIndex, elementType: TileElement) {
-    this.tileIndex = tileIndex;
-    this.elementType = elementType;
+  static readonly SQUARE: TileRegion = new TileRegion(RegionType.FILL);
+  static readonly UPPER_LEFT: TileRegion = new TileRegion(RegionType.FILL);
+  static readonly UPPER_RIGHT: TileRegion = new TileRegion(RegionType.FILL);
+  static readonly LOWER_RIGHT: TileRegion = new TileRegion(RegionType.FILL);
+  static readonly LOWER_LEFT: TileRegion = new TileRegion(RegionType.FILL);
+
+
+  private type: RegionType;
+
+  private constructor(type: RegionType) {
+    this.type = type;
+  }
+
+  isFill(): boolean {
+    return this.type === RegionType.FILL;
+  }
+
+  isEdge(): boolean {
+    return this.type === RegionType.EDGE;
   }
 }
 
-export enum Edge {
-  NONE,
-  BARRIER
-}
+export class TileRegionIndex {
+  readonly tileIndex: TileIndex;
+  readonly tileRegion: TileRegion;
 
-export function isEdge(tileElement: TileElement) {
-  return tileElement === TileElement.TOP_EDGE
-      || tileElement === TileElement.LEFT_EDGE;
-}
-
-export enum Fill {
-  NONE,
-  BARRIER,
-}
-
-export function isFill(tileElement: TileElement) {
-  return tileElement === TileElement.SQUARE
-      || tileElement === TileElement.UPPER_LEFT
-      || tileElement === TileElement.UPPER_RIGHT
-      || tileElement === TileElement.LOWER_RIGHT
-      || tileElement === TileElement.LOWER_LEFT;
+  constructor(tileIndex: TileIndex, regionType: TileRegion) {
+    this.tileIndex = tileIndex;
+    this.tileRegion = regionType;
+  }
 }
