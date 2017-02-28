@@ -1,5 +1,5 @@
 import RegionResolver from 'RegionResolver';
-import { TileRegion, TileRegionIndex } from 'Tile';
+import { Region, RegionIndex } from 'Tile';
 import Vec from 'Vec';
 
 export default class BoxResolver extends RegionResolver {
@@ -17,8 +17,8 @@ export default class BoxResolver extends RegionResolver {
         super();
     }
 
-    resolve(startCoords: Vec, endCoords: Vec): TileRegionIndex[] {
-        let tileCoords = new Vec(startCoords.x % 1, startCoords.y % 1);
+    resolve(startCoords: Vec, endCoords: Vec): RegionIndex[] {
+        let tileCoords = Vec.of(startCoords.x % 1, startCoords.y % 1);
 
         // Calculate starting index
         const baseX = Math.floor(startCoords.x);
@@ -31,30 +31,30 @@ export default class BoxResolver extends RegionResolver {
         const bottom = Math.floor(Math.max(startCoords.y, endCoords.y));
 
         const start = this.resolveStart(tileCoords, baseX, baseY);
-        const elements: TileRegionIndex[] = [];
+        const elements: RegionIndex[] = [];
 
-        if (start.tileRegion === TileRegion.SQUARE) {
+        if (start.tileRegion === Region.SQUARE) {
             for (let x = left; x <= right; x++) {
                 for (let y = top; y <= bottom; y++) {
-                    elements.push(this.newIndex(x, y, TileRegion.SQUARE));
+                    elements.push(this.newIndex(x, y, Region.SQUARE));
                 }
             }
-        } else if (start.tileRegion === TileRegion.TOP_EDGE) {
+        } else if (start.tileRegion === Region.TOP_EDGE) {
             for (let x = left; x <= right; x++) {
                 elements.push(this.newIndex(x, start.tileIndex.y,
-                    TileRegion.TOP_EDGE));
+                    Region.TOP_EDGE));
             }
-        } else if (start.tileRegion === TileRegion.LEFT_EDGE) {
+        } else if (start.tileRegion === Region.LEFT_EDGE) {
             for (let y = top; y <= bottom; y++) {
                 elements.push(this.newIndex(start.tileIndex.x, y,
-                    TileRegion.LEFT_EDGE));
+                    Region.LEFT_EDGE));
             }
         }
 
         return elements;
     }
 
-    private resolveStart(coords: Vec, baseX: number, baseY: number): TileRegionIndex {
+    private resolveStart(coords: Vec, baseX: number, baseY: number): RegionIndex {
         const edgeDist = BoxResolver.edgeDist;
 
         const distLeft = coords.x;
@@ -64,26 +64,26 @@ export default class BoxResolver extends RegionResolver {
 
         if (distLeft < edgeDist) {
             if (distLeft <= distTop && distLeft <= distBottom) {
-                return this.newIndex(baseX, baseY, TileRegion.LEFT_EDGE);
+                return this.newIndex(baseX, baseY, Region.LEFT_EDGE);
             }
         }
 
         if (distTop < edgeDist) {
             if (distTop <= distRight) {
-                return this.newIndex(baseX, baseY, TileRegion.TOP_EDGE);
+                return this.newIndex(baseX, baseY, Region.TOP_EDGE);
             }
         }
 
         if (distRight < edgeDist) {
             if (distRight <= distBottom) {
-                return this.newIndex(baseX + 1, baseY, TileRegion.LEFT_EDGE);
+                return this.newIndex(baseX + 1, baseY, Region.LEFT_EDGE);
             }
         }
 
         if (distBottom < edgeDist) {
-            return this.newIndex(baseX, baseY + 1, TileRegion.TOP_EDGE);
+            return this.newIndex(baseX, baseY + 1, Region.TOP_EDGE);
         }
 
-        return this.newIndex(baseX, baseY, TileRegion.SQUARE);
+        return this.newIndex(baseX, baseY, Region.SQUARE);
     }
 }

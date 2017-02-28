@@ -1,5 +1,5 @@
 import RegionResolver from 'RegionResolver';
-import { TileRegion, TileRegionIndex } from 'Tile';
+import { Region, RegionIndex } from 'Tile';
 import Vec from 'Vec';
 
 export default class DiagResolver extends RegionResolver {
@@ -16,8 +16,8 @@ export default class DiagResolver extends RegionResolver {
         super();
     }
 
-    resolve(startCoords: Vec, endCoords: Vec): TileRegionIndex[] {
-        let tileCoords = new Vec(startCoords.x % 1, startCoords.y % 1);
+    resolve(startCoords: Vec, endCoords: Vec): RegionIndex[] {
+        let tileCoords = Vec.of(startCoords.x % 1, startCoords.y % 1);
 
         // Calculate starting index
         const baseX = Math.floor(startCoords.x);
@@ -25,15 +25,15 @@ export default class DiagResolver extends RegionResolver {
 
         if (tileCoords.x < 0.5) {
             if (tileCoords.y < 0.5) {
-                return [this.newIndex(baseX, baseY, TileRegion.UPPER_LEFT)];
+                return [this.newIndex(baseX, baseY, Region.UPPER_LEFT)];
             } else {
-                return [this.newIndex(baseX, baseY, TileRegion.LOWER_LEFT)];
+                return [this.newIndex(baseX, baseY, Region.LOWER_LEFT)];
             }
         } else {
             if (tileCoords.y < 0.5) {
-                return [this.newIndex(baseX, baseY, TileRegion.UPPER_RIGHT)];
+                return [this.newIndex(baseX, baseY, Region.UPPER_RIGHT)];
             } else {
-                return [this.newIndex(baseX, baseY, TileRegion.LOWER_RIGHT)];
+                return [this.newIndex(baseX, baseY, Region.LOWER_RIGHT)];
             }
         }
     }

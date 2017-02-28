@@ -2,20 +2,24 @@ export default class Vec {
   readonly x: number;
   readonly y: number;
 
-  constructor(x: number, y: number) {
+  static of(x: number, y: number) {
+    return new Vec(x, y);
+  }
+
+  private constructor(x: number, y: number) {
     this.x = x;
     this.y = y;
   }
 
   add(vec: Vec): Vec {
-    return new Vec(this.x + vec.x, this.y + vec.y);
+    return Vec.of(this.x + vec.x, this.y + vec.y);
   }
 
   sub(vec: Vec): Vec {
-    return new Vec(this.x - vec.x, this.y - vec.y);
+    return Vec.of(this.x - vec.x, this.y - vec.y);
   }
 
   mul(num: number): Vec {
-    return new Vec(this.x * num, this.y * num);
+    return Vec.of(this.x * num, this.y * num);
   }
 }

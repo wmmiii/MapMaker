@@ -1,19 +1,18 @@
-import Edge from 'Edge';
 import BoxResolver from 'resolvers/BoxResolver';
 import DiagResolver from 'resolvers/DiagResolver';
-import Fill from 'Fill';
 import GameMap from 'GameMap';
-import RegionResolver from 'resolvers/RegionResolver';
+import MoveTool from 'tools/MoveTool';
 import Renderer from 'Renderer';
 import {
   Tile,
-  TileIndex,
-  TileRegion,
-  TileRegionIndex
+  Index,
+  Region,
+  RegionIndex
 } from 'Tile';
-import { Ui, Mode } from 'Ui';
+import { Tool, ToolId } from 'tools/Tool';
+import Ui from 'Ui';
 import Vec from 'Vec';
-import { WallEdge, WallFill } from 'Wall';
+import WallTool from 'tools/WallTool';
 
 export const init = (): App => {
   const container = document.getElementById("canvas-container");
@@ -21,16 +20,17 @@ export const init = (): App => {
   return new App(container, toolbar);
 }
 
-export class App {
+export default class App {
   private map: GameMap;
-  private mode: Mode;
+  private currentTool: Tool;
+  private tools: Map<ToolId, Tool>;
 
   private container: HTMLElement;
   private canvas: HTMLCanvasElement;
   private renderer: Renderer;
   private ui: Ui;
 
-  private hovered: TileRegionIndex[];
+  private hovered: RegionIndex[];
   private offset: Vec;
 
   private tileSize: number = 40;
@@ -39,92 +39,82 @@ export class App {
   constructor(container: HTMLElement, toolbar: HTMLElement) {
     this.container = container;
     this.canvas = container.querySelector("canvas");
-    this.ui = new Ui(container, toolbar);
+    this.ui = new Ui(this, container, toolbar);
     this.renderer = new Renderer(this.canvas, this.tileSize);
 
     this.map = new GameMap();
+    this.tools = new Map();
+    this.tools.set(ToolId.BOX_WALL, new WallTool(this, BoxResolver.getInstance()));
+    this.tools.set(ToolId.DIAG_WALL, new WallTool(this, DiagResolver.getInstance()));
+    this.tools.set(ToolId.MOVE, new MoveTool(this));
+    this.setCurrentTool(ToolId.MOVE);
 
     this.hovered = null;
-    this.offset = new Vec(0, 0);
+    this.offset = Vec.of(0, 0);
 
     const resizeCanvas = () => {
       this.canvas.width = container.clientWidth;
       this.canvas.height = container.clientHeight;
 
-      this.renderer.render(this.map, this.offset, this.hovered);
+      this.render();
     };
 
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
+  }
 
-    this.ui.onModeChange((mode: Mode) => {
-      this.mode = mode;
-      this.hovered = null;
-    });
+  /* Member actions */
+  getMap(): GameMap {
+    return this.map;
+  }
 
-    this.ui.onHover((startCoords: Vec, endCoords: Vec) => {
-      let resolver: RegionResolver;
-      if (this.mode === Mode.DIAG) {
-        resolver = DiagResolver.getInstance();
-      } else {
-        resolver = BoxResolver.getInstance();
-      }
-      this.hovered = resolver.resolve(
-        startCoords.sub(this.offset).mul(1 / this.tileSize),
-        endCoords.sub(this.offset).mul(1 / this.tileSize));
-      this.renderer.render(this.map, this.offset, this.hovered);
-    });
+  setMap(map: GameMap): void {
+    this.map = map;
+  }
 
-    this.ui.onHoverEnd(() => {
-      this.hovered = null;
-      this.renderer.render(this.map, this.offset, this.hovered);
-    });
+  getOffset(): Vec {
+    return this.offset;
+  }
 
-    this.ui.onMove((dist: Vec) => {
-      this.renderer.render(this.map, this.offset.add(dist), this.hovered);
-    });
+  setOffset(offset: Vec): void {
+    this.offset = offset;
+  }
 
-    this.ui.onMoveEnd((dist: Vec) => {
-      this.offset = this.offset.add(dist);
-      this.renderer.render(this.map, this.offset, this.hovered);
-    });
+  getTileSize(): number {
+    return this.tileSize;
+  }
 
-    this.ui.onSelect((startCoords: Vec, endCoords: Vec) => {
-      let resolver: RegionResolver;
-      if (this.mode === Mode.DIAG) {
-        resolver = DiagResolver.getInstance();
-      } else {
-        resolver = BoxResolver.getInstance();
-      }
-      resolver.resolve(
-        startCoords.sub(this.offset).mul(1 / this.tileSize),
-        endCoords.sub(this.offset).mul(1 / this.tileSize))
-        .forEach((regionIndex) => {
-          let tile = this.map.getTile(regionIndex.tileIndex);
-          if (tile == null) {
-            tile = new Tile(regionIndex.tileIndex);
-            this.map.addTile(tile);
-          }
+  setHovered(hovered: RegionIndex[]): void {
+    this.hovered = hovered;
+  }
 
-          const region = regionIndex.tileRegion;
-          if (region.isEdge()) {
-            if (tile.getWallEdge(region) === WallEdge.NONE) {
-              tile.setWallEdge(region, WallEdge.BARRIER);
-            } else {
-              tile.setWallEdge(region, WallEdge.NONE);
-            }
-          } else if (region.isFill()) {
-            if (tile.getWallFill(region) === WallFill.NONE) {
-              tile.setWallFill(region, WallFill.BARRIER);
-            } else {
-              tile.setWallFill(region, WallFill.NONE);
-            }
-          }
+  /* Tool methods */
+  setCurrentTool(toolId: ToolId): void {
+    this.currentTool = this.tools.get(toolId);
+    this.ui.setTool(toolId);
+  }
 
-          if (tile.noState()) {
-            this.map.removeTile(tile.index);
-          }
-        });
-    });
+  cancel(): void {
+    this.currentTool.cancel();
+    this.render();
+  }
+
+  hover(startCoords: Vec, endCoords: Vec): void {
+    this.currentTool.hover(startCoords, endCoords);
+    this.render();
+  }
+
+  select(startCoords: Vec, endCoords: Vec): void {
+    this.currentTool.select(startCoords, endCoords);
+    this.render();
+  }
+
+  /* Utility methods */
+  toMapSpace(vec: Vec) {
+    return vec.sub(this.offset).mul(1 / this.tileSize);
+  }
+
+  private render(): void {
+    this.renderer.render(this.map, this.offset, this.hovered);
   }
 }

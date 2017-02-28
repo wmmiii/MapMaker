@@ -1,12 +1,12 @@
 import { WallEdge, WallFill } from 'Wall';
 
 export class Tile {
-  readonly index: TileIndex;
+  readonly index: Index;
 
-  private wallEdgeRegions: Map<TileRegion, WallEdge>;
-  private wallFillRegions: Map<TileRegion, WallFill>;
+  private wallEdgeRegions: Map<Region, WallEdge>;
+  private wallFillRegions: Map<Region, WallFill>;
 
-  constructor(index: TileIndex) {
+  constructor(index: Index) {
     this.index = index;
     this.wallEdgeRegions = new Map();
     this.wallFillRegions = new Map();
@@ -18,11 +18,11 @@ export class Tile {
     return !(hasWallEdge || hasWallFill);
   }
 
-  getWallEdges(): Map<TileRegion, WallEdge> {
+  getWallEdges(): Map<Region, WallEdge> {
     return this.wallEdgeRegions;
   }
 
-  getWallEdge(region: TileRegion): WallEdge {
+  getWallEdge(region: Region): WallEdge {
     if (!region.isEdge()) {
       throw new TypeError("Tried to get wall edge style of non-edge region.");
     }
@@ -33,18 +33,18 @@ export class Tile {
     return edgeRegions.get(region);
   }
 
-  setWallEdge(region: TileRegion, edge: WallEdge): void {
+  setWallEdge(region: Region, edge: WallEdge): void {
     if (!region.isEdge()) {
       throw new TypeError("Tried to set wall edge style of non-edge region.");
     }
     this.wallEdgeRegions.set(region, edge);
   }
 
-  getWallFills(): Map<TileRegion, WallFill> {
+  getWallFills(): Map<Region, WallFill> {
     return this.wallFillRegions;
   }
 
-  getWallFill(region: TileRegion): WallFill {
+  getWallFill(region: Region): WallFill {
     if (!region.isFill()) {
       throw new TypeError("Tried to get wall fill style of non-fill region.");
     }
@@ -55,7 +55,7 @@ export class Tile {
     return fillRegions.get(region);
   }
 
-  setWallFill(region: TileRegion, fill: WallFill): void {
+  setWallFill(region: Region, fill: WallFill): void {
     if (!region.isFill()) {
       throw new TypeError("Tried to set wall fill style of non-fill region.");
     }
@@ -63,20 +63,20 @@ export class Tile {
   }
 }
 
-export class TileIndex {
+export class Index {
   private static indicies: any = {};
   readonly x: number;
   readonly y: number;
 
   static of(x: number, y: number) {
-    if (TileIndex.indicies[x] == null) {
-      TileIndex.indicies[x] = {};
-      TileIndex.indicies[x][y] = new TileIndex(x, y);
-    } else if (TileIndex.indicies[x][y] == null) {
-      TileIndex.indicies[x][y] = new TileIndex(x, y);
+    if (Index.indicies[x] == null) {
+      Index.indicies[x] = {};
+      Index.indicies[x][y] = new Index(x, y);
+    } else if (Index.indicies[x][y] == null) {
+      Index.indicies[x][y] = new Index(x, y);
     }
 
-    return TileIndex.indicies[x][y];
+    return Index.indicies[x][y];
   }
 
   private constructor(x: number, y: number) {
@@ -90,17 +90,17 @@ enum RegionType {
   FILL
 }
 
-export class TileRegion {
-  static readonly TOP_EDGE: TileRegion = new TileRegion(RegionType.EDGE);
-  static readonly LEFT_EDGE: TileRegion = new TileRegion(RegionType.EDGE);
-  static readonly NW_CROSS: TileRegion = new TileRegion(RegionType.EDGE);
-  static readonly NE_CROSS: TileRegion = new TileRegion(RegionType.EDGE);
+export class Region {
+  static readonly TOP_EDGE: Region = new Region(RegionType.EDGE);
+  static readonly LEFT_EDGE: Region = new Region(RegionType.EDGE);
+  static readonly NW_CROSS: Region = new Region(RegionType.EDGE);
+  static readonly NE_CROSS: Region = new Region(RegionType.EDGE);
 
-  static readonly SQUARE: TileRegion = new TileRegion(RegionType.FILL);
-  static readonly UPPER_LEFT: TileRegion = new TileRegion(RegionType.FILL);
-  static readonly UPPER_RIGHT: TileRegion = new TileRegion(RegionType.FILL);
-  static readonly LOWER_RIGHT: TileRegion = new TileRegion(RegionType.FILL);
-  static readonly LOWER_LEFT: TileRegion = new TileRegion(RegionType.FILL);
+  static readonly SQUARE: Region = new Region(RegionType.FILL);
+  static readonly UPPER_LEFT: Region = new Region(RegionType.FILL);
+  static readonly UPPER_RIGHT: Region = new Region(RegionType.FILL);
+  static readonly LOWER_RIGHT: Region = new Region(RegionType.FILL);
+  static readonly LOWER_LEFT: Region = new Region(RegionType.FILL);
 
 
   private type: RegionType;
@@ -118,11 +118,11 @@ export class TileRegion {
   }
 }
 
-export class TileRegionIndex {
-  readonly tileIndex: TileIndex;
-  readonly tileRegion: TileRegion;
+export class RegionIndex {
+  readonly tileIndex: Index;
+  readonly tileRegion: Region;
 
-  constructor(tileIndex: TileIndex, regionType: TileRegion) {
+  constructor(tileIndex: Index, regionType: Region) {
     this.tileIndex = tileIndex;
     this.tileRegion = regionType;
   }

@@ -1,4 +1,4 @@
-import { TileRegion } from 'Tile';
+import { Region } from 'Tile';
 
 export enum WallEdge {
   NONE,

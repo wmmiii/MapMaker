@@ -2,9 +2,9 @@ import Edge from 'Edge';
 import Fill from 'Fill';
 import GameMap from 'GameMap';
 import {
-  TileIndex,
-  TileRegion,
-  TileRegionIndex
+  Index,
+  Region,
+  RegionIndex
 } from 'Tile';
 import Vec from 'Vec';
 import { WallEdge, WallFill } from 'Wall';
@@ -26,7 +26,7 @@ export default class Renderer {
     this.tileSize = tileSize;
   }
 
-  public render(map: GameMap, offset: Vec, hovered: TileRegionIndex[]) {
+  public render(map: GameMap, offset: Vec, hovered: RegionIndex[]) {
     this.offset = offset;
     this.clear();
     this.drawGrid();
@@ -79,18 +79,18 @@ export default class Renderer {
     ctx.lineWidth = this.lineWidth;
 
     map.getTiles().forEach((tile) => {
-      tile.getWallEdges().forEach((edge: WallEdge, region: TileRegion) => {
+      tile.getWallEdges().forEach((edge: WallEdge, region: Region) => {
         if (edge === WallEdge.BARRIER) {
           ctx.strokeStyle = this.barrierColor;
           ctx.fillStyle = this.barrierColor;
-          this.drawRegion(new TileRegionIndex(tile.index, region), true);
+          this.drawRegion(new RegionIndex(tile.index, region), true);
         }
       });
-      tile.getWallFills().forEach((fill: WallFill, region: TileRegion) => {
+      tile.getWallFills().forEach((fill: WallFill, region: Region) => {
         if (fill === WallFill.BARRIER) {
           ctx.strokeStyle = this.barrierColor;
           ctx.fillStyle = this.barrierColor;
-          this.drawRegion(new TileRegionIndex(tile.index, region), true);
+          this.drawRegion(new RegionIndex(tile.index, region), true);
         }
       });
     });
@@ -98,7 +98,7 @@ export default class Renderer {
     ctx.restore();
   }
 
-  private drawHovered(hovered: TileRegionIndex[]) {
+  private drawHovered(hovered: RegionIndex[]) {
     const ctx = this.ctx;
     ctx.save();
 
@@ -113,49 +113,49 @@ export default class Renderer {
     ctx.restore();
   }
 
-  private drawRegion(regionIndex: TileRegionIndex, includeEdges: boolean = false) {
+  private drawRegion(regionIndex: RegionIndex, includeEdges: boolean = false) {
     const tileSize = this.tileSize;
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(regionIndex.tileIndex.x * tileSize, regionIndex.tileIndex.y * tileSize);
 
     switch (regionIndex.tileRegion) {
-      case TileRegion.TOP_EDGE:
+      case Region.TOP_EDGE:
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(tileSize, 0);
         ctx.stroke();
         break;
 
-      case TileRegion.LEFT_EDGE:
+      case Region.LEFT_EDGE:
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(0, tileSize);
         ctx.stroke();
         break;
 
-      case TileRegion.NW_CROSS:
+      case Region.NW_CROSS:
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(tileSize, tileSize);
         ctx.stroke();
         break;
 
-      case TileRegion.NE_CROSS:
+      case Region.NE_CROSS:
         ctx.beginPath();
         ctx.moveTo(tileSize, 0);
         ctx.lineTo(0, tileSize);
         ctx.stroke();
         break;
 
-      case TileRegion.SQUARE:
+      case Region.SQUARE:
         ctx.fillRect(0, 0, tileSize, tileSize);
         if (includeEdges) {
           ctx.strokeRect(0, 0, tileSize, tileSize);
         }
         break;
 
-      case TileRegion.UPPER_LEFT:
+      case Region.UPPER_LEFT:
         ctx.beginPath();
         ctx.moveTo(0, tileSize);
         ctx.lineTo(0, 0);
@@ -166,7 +166,7 @@ export default class Renderer {
         }
         break;
 
-      case TileRegion.UPPER_RIGHT:
+      case Region.UPPER_RIGHT:
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(tileSize, 0);
@@ -177,7 +177,7 @@ export default class Renderer {
         }
         break;
 
-      case TileRegion.LOWER_RIGHT:
+      case Region.LOWER_RIGHT:
         ctx.beginPath();
         ctx.moveTo(tileSize, 0);
         ctx.lineTo(tileSize, tileSize);
@@ -188,7 +188,7 @@ export default class Renderer {
         }
         break;
 
-      case TileRegion.LOWER_LEFT:
+      case Region.LOWER_LEFT:
         ctx.beginPath();
         ctx.moveTo(tileSize, tileSize);
         ctx.lineTo(0, tileSize);

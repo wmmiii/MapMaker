@@ -1,11 +1,11 @@
-import { TileIndex, TileRegion, TileRegionIndex } from 'Tile';
+import { Index, Region, RegionIndex } from 'Tile';
 import Vec from 'Vec';
 
 export abstract class RegionResolver {
-    public abstract resolve(coordsStart: Vec, coordsEnd: Vec): TileRegionIndex[];
+    public abstract resolve(coordsStart: Vec, coordsEnd: Vec): RegionIndex[];
 
-    protected newIndex(x: number, y: number, region: TileRegion): TileRegionIndex {
-        return new TileRegionIndex(TileIndex.of(x, y), region);
+    protected newIndex(x: number, y: number, region: Region): RegionIndex {
+        return new RegionIndex(Index.of(x, y), region);
     }
 }
 

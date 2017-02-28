@@ -5,9 +5,7 @@
     "noImplicitAny": true,
     "removeComments": true,
     "preserveConstEnums": true,
-    "outFile": "js/app.js",
-    "sourceMap": true,
-    "sourceRoot": "src"
+    "outFile": "js/app.js"
   },
   "include": [
     "src/**/*"
