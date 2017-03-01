@@ -160,6 +160,7 @@ export default class Renderer {
         ctx.moveTo(0, tileSize);
         ctx.lineTo(0, 0);
         ctx.lineTo(tileSize, 0);
+        ctx.closePath();
         ctx.fill();
         if (includeEdges) {
           ctx.stroke();
@@ -171,6 +172,7 @@ export default class Renderer {
         ctx.moveTo(0, 0);
         ctx.lineTo(tileSize, 0);
         ctx.lineTo(tileSize, tileSize);
+        ctx.closePath();
         ctx.fill();
         if (includeEdges) {
           ctx.stroke();
@@ -182,6 +184,7 @@ export default class Renderer {
         ctx.moveTo(tileSize, 0);
         ctx.lineTo(tileSize, tileSize);
         ctx.lineTo(0, tileSize);
+        ctx.closePath();
         ctx.fill();
         if (includeEdges) {
           ctx.stroke();
@@ -193,6 +196,7 @@ export default class Renderer {
         ctx.moveTo(tileSize, tileSize);
         ctx.lineTo(0, tileSize);
         ctx.lineTo(0, 0);
+        ctx.closePath();
         ctx.fill();
         if (includeEdges) {
           ctx.stroke();

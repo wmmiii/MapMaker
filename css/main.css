@@ -26,20 +26,8 @@ html, body {
   top: 0;
 }
 
-.overlay.mode_MOVE {
-  cursor: move;
-}
-
-.overlay.mode_BOX,
-.overlay.mode_DIAG,
-.overlay.mode_SELECT {
-  cursor: pointer;
-}
-
 canvas {
   position: absolute;
   top: 0;
   left: 0;
 }
-
-

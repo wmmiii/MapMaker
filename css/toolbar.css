@@ -1,38 +1,30 @@
-#bottom-bar {
+#toolbar {
+  border: 1px solid #b0b0b0;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
   bottom: 0;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
   display: flex;
-  justify-content: center;
-  left: 0;
-  position: fixed;
-  right: 0;
-
+  flex-direction: row;
+  left: 50%;
+  overflow: hidden;
+  position: absolute;
   -webkit-touch-callout: none;
     -webkit-user-select: none;
      -khtml-user-select: none;
        -moz-user-select: none;
         -ms-user-select: none;
             user-select: none;
-
+  transform: translate(-50%, 0);
   z-index: 1;
 }
 
-#toolbar {
-  border: 1px solid #b0b0b0;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: row;
-  overflow: hidden;
-}
-
 #toolbar .button {
+  border-left: 1px solid #b0b0b0;
   color: black;
   cursor: pointer;
   padding: 10px 15px;
 
-  border-left: 1px solid #b0b0b0;
-  
   background: #e5e5e5; /* Old browsers */
   background: -moz-linear-gradient(top, #e5e5e5 0%, #dddddd 100%); /* FF3.6-15 */
   background: -webkit-linear-gradient(top, #e5e5e5 0%,#dddddd 100%); /* Chrome10-25,Safari5.1-6 */

@@ -2,10 +2,10 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Map Maker Mother Mucker</title>
+<title>Map Maker</title>
 <link href="https://fonts.googleapis.com/css?family=Titillium+Web:200" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="css/main.css" />
-<link rel="stylesheet" type="text/css" href="css/bottombar.css" />
+<link rel="stylesheet" type="text/css" href="css/toolbar.css" />
 <script data-map="app" src="lib/require.js"></script>
 <script>
 let init = () => {
@@ -25,17 +25,15 @@ let init = () => {
     <canvas id="canvas"></canvas>
     <div class="overlay"></did>
   </div>
-  <div id="bottom-bar">
-    <div id="toolbar">
-      <div id="box_tool" class="button">
-        Box
-      </div>
-      <div id="diag_tool" class="button">
-        Diagonal
-      </div>
-      <div id="move_tool" class="button">
-        Move
-      </div>
+  <div id="toolbar">
+    <div id="box-tool" class="button">
+      Box
+    </div>
+    <div id="diag-tool" class="button">
+      Diagonal
+    </div>
+    <div id="move-tool" class="button">
+      Move
     </div>
   </div>
 </body>

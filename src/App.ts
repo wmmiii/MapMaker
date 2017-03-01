@@ -47,7 +47,7 @@ export default class App {
     this.tools.set(ToolId.BOX_WALL, new WallTool(this, BoxResolver.getInstance()));
     this.tools.set(ToolId.DIAG_WALL, new WallTool(this, DiagResolver.getInstance()));
     this.tools.set(ToolId.MOVE, new MoveTool(this));
-    this.setCurrentTool(ToolId.MOVE);
+    this.setCurrentTool(ToolId.BOX_WALL);
 
     this.hovered = null;
     this.offset = Vec.of(0, 0);

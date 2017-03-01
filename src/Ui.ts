@@ -19,9 +19,9 @@ export default class Ui {
     this.toolbar = toolbar;
 
     this.toolMapping = new Map();
-    this.toolMapping.set(ToolId.MOVE, ['move_tool', 'm']);
-    this.toolMapping.set(ToolId.BOX_WALL, ['box_tool', 'b']);
-    this.toolMapping.set(ToolId.DIAG_WALL, ['diag_tool', 'd']);
+    this.toolMapping.set(ToolId.MOVE, ['move-tool', 'm']);
+    this.toolMapping.set(ToolId.BOX_WALL, ['box-tool', 'b']);
+    this.toolMapping.set(ToolId.DIAG_WALL, ['diag-tool', 'd']);
 
     this.bindMouseEvents();
     this.bindKeyEvents();
@@ -62,8 +62,7 @@ export default class Ui {
     };
     
     overlay.onmouseout = (e: MouseEvent) => {
-      this.app.cancel();
-      this.isMouseDown = false;
+      this.cancelHover();
     };
 
     overlay.onmousemove = (e: MouseEvent) => {
@@ -78,14 +77,20 @@ export default class Ui {
 
   private bindKeyEvents() {
     this.container.onkeydown = (e: KeyboardEvent) => {
-      let foundTool;
-      this.toolMapping.forEach(([tool, [_, shortcut]]) => {
-        if (shortcut.charCodeAt(0) === e.keyCode) {
+      let foundTool: ToolId;
+      this.toolMapping.forEach(([_, shortcut], tool) => {
+        if (shortcut === e.key) {
           foundTool = tool;
         }
       });
       if (foundTool) {
         this.app.setCurrentTool(foundTool);
+        return;
+      }
+
+      // Bind ESC key to cancel
+      if (e.keyCode === 27) {
+        this.cancelHover();
         return;
       }
       
@@ -100,5 +105,10 @@ export default class Ui {
         this.app.setCurrentTool(tool);
       };
     });
+  }
+
+  private cancelHover() {
+    this.isMouseDown = false;
+    this.app.cancel();
   }
 };
