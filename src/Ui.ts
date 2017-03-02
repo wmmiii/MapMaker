@@ -21,6 +21,7 @@ export default class Ui {
     this.toolMapping = new Map();
     this.toolMapping.set(ToolId.MOVE, ['move-tool', 'm']);
     this.toolMapping.set(ToolId.BOX_WALL, ['box-tool', 'b']);
+    this.toolMapping.set(ToolId.CIRCLE_TOOL, ['circle-tool', 'c']);
     this.toolMapping.set(ToolId.DIAG_WALL, ['diag-tool', 'd']);
 
     this.bindMouseEvents();

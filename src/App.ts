@@ -1,4 +1,5 @@
 import BoxResolver from 'resolvers/BoxResolver';
+import CircleResolver from 'resolvers/CircleResolver';
 import DiagResolver from 'resolvers/DiagResolver';
 import GameMap from 'GameMap';
 import MoveTool from 'tools/MoveTool';
@@ -45,6 +46,7 @@ export default class App {
     this.map = new GameMap();
     this.tools = new Map();
     this.tools.set(ToolId.BOX_WALL, new WallTool(this, BoxResolver.getInstance()));
+    this.tools.set(ToolId.CIRCLE_TOOL, new WallTool(this, CircleResolver.getInstance()));
     this.tools.set(ToolId.DIAG_WALL, new WallTool(this, DiagResolver.getInstance()));
     this.tools.set(ToolId.MOVE, new MoveTool(this));
     this.setCurrentTool(ToolId.BOX_WALL);

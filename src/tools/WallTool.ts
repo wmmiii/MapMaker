@@ -24,13 +24,7 @@ export default class WallTool implements Tool {
         this.app.toMapSpace(startCoords),
         this.app.toMapSpace(endCoords));
 
-    if (hovered.length === 1) {
-      this.app.setHovered(hovered);
-    } else {
-      this.app.setHovered(hovered.filter((regionIndex) => 
-        this.canApply(map.getTile(regionIndex.tileIndex),
-            regionIndex.tileRegion)));
-    }
+    this.app.setHovered(hovered);
   }
   
   select(startCoords: Vec, endCoords: Vec): void {
@@ -84,6 +78,8 @@ export default class WallTool implements Tool {
         })
         .forEach((tile) => map.addTile(tile));
     }
+
+    this.app.setHovered([]);
   }
 
   private canApply(tile: Tile.Tile, region: Tile.Region): boolean {

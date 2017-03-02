@@ -10,5 +10,6 @@ export enum ToolId {
     MOVE,
 
     BOX_WALL,
+    CIRCLE_TOOL,
     DIAG_WALL
 }
