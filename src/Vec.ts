@@ -22,4 +22,12 @@ export default class Vec {
   mul(num: number): Vec {
     return Vec.of(this.x * num, this.y * num);
   }
+
+  mod(num: number): Vec {
+    return Vec.of(this.x % num, this.y % num);
+  }
+
+  floor() {
+    return Vec.of(Math.floor(this.x), Math.floor(this.y));
+  }
 }

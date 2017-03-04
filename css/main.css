@@ -24,10 +24,21 @@ html, body {
   position: absolute;
   right: 0;
   top: 0;
+
+  z-index: 3;
 }
 
 canvas {
   position: absolute;
   top: 0;
   left: 0;
+}
+
+#map-canvas {
+  z-index: 1;
+}
+
+#hover-canvas {
+  z-index: 2;
+  opacity: 0.4;
 }

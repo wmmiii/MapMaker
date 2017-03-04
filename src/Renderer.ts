@@ -11,42 +11,49 @@ import { WallEdge, WallFill } from 'Wall';
 
 export default class Renderer {
   private bgColor: string = "#efece8";
-  private gridColor: string = "#d8d5d2";
-  private hoverColor: string = "rgba(37, 188, 219, 0.4)";
-  private barrierColor: string = "#1c1711"
+  private gridColor: string = "rgba(0, 0, 0, 0.1)";
+  private hoverColor: string = "#25BCDB";
+  private barrierColor: string = "#3a332a";
   private tileSize: number = 40;
   private lineWidth: number = 2;
-  private canvas: HTMLCanvasElement;
-  private ctx: CanvasRenderingContext2D;
+  private mapCanvas: HTMLCanvasElement;
+  private mapCtx: CanvasRenderingContext2D;
+  private hoverCanvas: HTMLCanvasElement;
+  private hoverCtx: CanvasRenderingContext2D;
   private offset: Vec;
 
-  constructor(canvas: HTMLCanvasElement, tileSize: number) {
-    this.canvas = canvas;
-    this.ctx = canvas.getContext("2d");
+  constructor(mainCanvas: HTMLCanvasElement, hoverCanvas: HTMLCanvasElement, tileSize: number) {
+    this.mapCanvas = mainCanvas;
+    this.mapCtx = mainCanvas.getContext("2d");
+
+    this.hoverCanvas = hoverCanvas;
+    this.hoverCtx = hoverCanvas.getContext("2d");
+    
     this.tileSize = tileSize;
   }
 
   public render(map: GameMap, offset: Vec, hovered: RegionIndex[]) {
     this.offset = offset;
     this.clear();
-    this.drawGrid();
     this.drawMap(map);
+    this.drawGrid();
     if (hovered !== null && hovered.length !== 0) {
       this.drawHovered(hovered);
     }
   }
 
   private clear() {
-    this.ctx.fillStyle = this.bgColor;
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.mapCtx.fillStyle = this.bgColor;
+    this.mapCtx.clearRect(0, 0, this.mapCanvas.width, this.mapCanvas.height);
+    this.mapCtx.fillRect(0, 0, this.mapCanvas.width, this.mapCanvas.height);
+    this.hoverCtx.clearRect(0, 0, this.mapCanvas.width, this.mapCanvas.height);
   }
 
   private drawGrid() {
     const tileSize = this.tileSize;
-    const canvasWidth = this.canvas.width;
-    const canvasHeight = this.canvas.height;
-    const ctx = this.ctx;
+    const canvasWidth = this.mapCanvas.width;
+    const canvasHeight = this.mapCanvas.height;
+    const ctx = this.mapCtx;
 
     const xShift = this.offset.x % tileSize;
     const yShift = this.offset.y % tileSize;
@@ -72,7 +79,7 @@ export default class Renderer {
   }
 
   private drawMap(map: GameMap) {
-    const ctx = this.ctx;
+    const ctx = this.mapCtx;
     ctx.save();
 
     ctx.translate(this.offset.x, this.offset.y);
@@ -83,14 +90,14 @@ export default class Renderer {
         if (edge === WallEdge.BARRIER) {
           ctx.strokeStyle = this.barrierColor;
           ctx.fillStyle = this.barrierColor;
-          this.drawRegion(new RegionIndex(tile.index, region), true);
+          this.drawRegion(ctx, new RegionIndex(tile.index, region), true);
         }
       });
       tile.getWallFills().forEach((fill: WallFill, region: Region) => {
         if (fill === WallFill.BARRIER) {
           ctx.strokeStyle = this.barrierColor;
           ctx.fillStyle = this.barrierColor;
-          this.drawRegion(new RegionIndex(tile.index, region), true);
+          this.drawRegion(ctx, new RegionIndex(tile.index, region), true);
         }
       });
     });
@@ -99,7 +106,7 @@ export default class Renderer {
   }
 
   private drawHovered(hovered: RegionIndex[]) {
-    const ctx = this.ctx;
+    const ctx = this.hoverCtx;
     ctx.save();
 
     ctx.translate(this.offset.x, this.offset.y);
@@ -108,14 +115,13 @@ export default class Renderer {
     ctx.lineWidth = 8;
     ctx.lineCap = "round";
 
-    hovered.forEach(tileRegion => this.drawRegion(tileRegion));
+    hovered.forEach(tileRegion => this.drawRegion(ctx, tileRegion));
 
     ctx.restore();
   }
 
-  private drawRegion(regionIndex: RegionIndex, includeEdges: boolean = false) {
+  private drawRegion(ctx: CanvasRenderingContext2D, regionIndex: RegionIndex, includeEdges: boolean = false) {
     const tileSize = this.tileSize;
-    const ctx = this.ctx;
     ctx.save();
     ctx.translate(regionIndex.tileIndex.x * tileSize, regionIndex.tileIndex.y * tileSize);
 

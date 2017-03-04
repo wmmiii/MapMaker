@@ -2,14 +2,14 @@ import RegionResolver from 'RegionResolver';
 import { Region, RegionIndex } from 'Tile';
 import Vec from 'Vec';
 
-export default class CircleResolver extends RegionResolver {
-  private static instance: CircleResolver;
+export default class ShittyCircleResolver extends RegionResolver {
+  private static instance: ShittyCircleResolver;
 
-  static getInstance(): CircleResolver {
-    if (!CircleResolver.instance) {
-      CircleResolver.instance = new CircleResolver();
+  static getInstance(): ShittyCircleResolver {
+    if (!ShittyCircleResolver.instance) {
+      ShittyCircleResolver.instance = new ShittyCircleResolver();
     }
-    return CircleResolver.instance;
+    return ShittyCircleResolver.instance;
   }
 
   private constructor() {
@@ -17,13 +17,13 @@ export default class CircleResolver extends RegionResolver {
   }
 
   resolve(startCoords: Vec, endCoords: Vec): RegionIndex[] {
-    const center = this.normalizeStart(startCoords);
-
     // Calculate starting index
-    const baseX = center.floor().x;
-    const baseY = center.floor().y;
+    const baseX = Math.floor(startCoords.x);
+    const baseY = Math.floor(startCoords.y);
 
     // Calculate circle things
+    const center = this.normalizeStart(startCoords);
+    console.log(center);
     const offset = center.x % 1;
     const difference = endCoords.sub(center);
     const radSqr = Math.pow(difference.x, 2) + Math.pow(difference.y, 2);
@@ -31,31 +31,29 @@ export default class CircleResolver extends RegionResolver {
 
     const elements: RegionIndex[] = [];
 
-    for (let x = -rad; x <= rad + offset; x++) {
-      for (let y = -rad; y <= rad + offset; y++) {
-        const relative = Vec.of(x, y).sub(Vec.of(offset, offset));
-
+    for (let x = -rad; x <= rad; x++) {
+      for (let y = -rad; y <= rad; y++) {
         // Check to see if the tile is reasonably within bounds
         const dist = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
-        if (dist < rad - 2 || dist > rad + 2) {
-          continue;
+        if (dist < rad - Math.SQRT2 || dist > rad + Math.SQRT2) {
+          break;
         }
 
         let region: Region = null;
         let contained = 0;
 
-        const ul = Math.pow(relative.x, 2) + Math.pow(relative.y, 2) <= radSqr;
+        const ul = Math.pow(x + offset - 0.5, 2) + Math.pow(y + offset - 0.5, 2) <= radSqr;
         contained += ul ? 1 : 0;
-        const ur = Math.pow(relative.x + 1, 2) + Math.pow(relative.y, 2) <= radSqr;
+        const ur = Math.pow(x + offset + 0.5, 2) + Math.pow(y + offset - 0.5, 2) <= radSqr;
         contained += ur ? 1 : 0;
-        const lr = Math.pow(relative.x + 1, 2) + Math.pow(relative.y + 1, 2) <= radSqr;
+        const lr = Math.pow(x + offset + 0.5, 2) + Math.pow(y + offset + 0.5, 2) <= radSqr;
         contained += lr ? 1 : 0;
-        const ll = Math.pow(relative.x, 2) + Math.pow(relative.y + 1, 2) <= radSqr;
+        const ll = Math.pow(x + offset - 0.5, 2) + Math.pow(y + offset + 0.5, 2) <= radSqr;
         contained += ll ? 1 : 0;
 
-        if (contained === 0 || contained > 2) {
-          continue;
-        }
+        // if (contained === 0 || contained > 2) {
+        //   continue;
+        // }
 
         const currX = baseX + x;
         const currY = baseY + y;
@@ -92,9 +90,9 @@ export default class CircleResolver extends RegionResolver {
   protected normalizeStart(coordsStart: Vec) {
     const translated = coordsStart.mod(1).sub(Vec.of(0.5, 0.5));
     if (Math.abs(translated.x) + Math.abs(translated.y) < 0.5) {
-      return coordsStart.floor().add(Vec.of(0.5, 0.5));
+        return coordsStart.floor().add(Vec.of(0.5, 0.5));
     } else {
-      return coordsStart.add(Vec.of(0.5, 0.5)).floor();
+        return coordsStart.add(Vec.of(0.5, 0.5)).floor();
     }
   }
 }

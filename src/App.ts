@@ -3,6 +3,7 @@ import CircleResolver from 'resolvers/CircleResolver';
 import DiagResolver from 'resolvers/DiagResolver';
 import GameMap from 'GameMap';
 import MoveTool from 'tools/MoveTool';
+import ShittyCircleResolver from 'resolvers/ShittyCircleResolver';
 import Renderer from 'Renderer';
 import {
   Tile,
@@ -27,7 +28,8 @@ export default class App {
   private tools: Map<ToolId, Tool>;
 
   private container: HTMLElement;
-  private canvas: HTMLCanvasElement;
+  private mapCanvas: HTMLCanvasElement;
+  private hoverCanvas: HTMLCanvasElement;
   private renderer: Renderer;
   private ui: Ui;
 
@@ -39,15 +41,17 @@ export default class App {
 
   constructor(container: HTMLElement, toolbar: HTMLElement) {
     this.container = container;
-    this.canvas = container.querySelector("canvas");
+    this.mapCanvas = container.querySelector("#map-canvas") as HTMLCanvasElement;
+    this.hoverCanvas = container.querySelector("#hover-canvas") as HTMLCanvasElement;
     this.ui = new Ui(this, container, toolbar);
-    this.renderer = new Renderer(this.canvas, this.tileSize);
+    this.renderer = new Renderer(this.mapCanvas, this.hoverCanvas, this.tileSize);
 
     this.map = new GameMap();
     this.tools = new Map();
     this.tools.set(ToolId.BOX_WALL, new WallTool(this, BoxResolver.getInstance()));
-    this.tools.set(ToolId.CIRCLE_TOOL, new WallTool(this, CircleResolver.getInstance()));
+    this.tools.set(ToolId.CIRCLE_WALL, new WallTool(this, CircleResolver.getInstance()));
     this.tools.set(ToolId.DIAG_WALL, new WallTool(this, DiagResolver.getInstance()));
+    this.tools.set(ToolId.SHITTY_CIRCLE_TOOL, new WallTool(this, ShittyCircleResolver.getInstance()));
     this.tools.set(ToolId.MOVE, new MoveTool(this));
     this.setCurrentTool(ToolId.BOX_WALL);
 
@@ -55,8 +59,8 @@ export default class App {
     this.offset = Vec.of(0, 0);
 
     const resizeCanvas = () => {
-      this.canvas.width = container.clientWidth;
-      this.canvas.height = container.clientHeight;
+      this.mapCanvas.width = this.hoverCanvas.width = container.clientWidth;
+      this.mapCanvas.height = this.hoverCanvas.height = container.clientHeight;
 
       this.render();
     };

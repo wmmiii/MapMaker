@@ -5,3 +5,4 @@
 * Terrain
 * Doors
 * Markers
+* Add starting circle on hover

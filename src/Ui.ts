@@ -15,14 +15,15 @@ export default class Ui {
   constructor(app: App, container: HTMLElement, toolbar: HTMLElement) {
     this.app = app;
     this.container = container;
-    this.overlay = <HTMLElement> container.querySelector('.overlay');
+    this.overlay = container.querySelector('.overlay') as HTMLElement;
     this.toolbar = toolbar;
 
     this.toolMapping = new Map();
     this.toolMapping.set(ToolId.MOVE, ['move-tool', 'm']);
     this.toolMapping.set(ToolId.BOX_WALL, ['box-tool', 'b']);
-    this.toolMapping.set(ToolId.CIRCLE_TOOL, ['circle-tool', 'c']);
+    this.toolMapping.set(ToolId.CIRCLE_WALL, ['circle-tool', 'c']);
     this.toolMapping.set(ToolId.DIAG_WALL, ['diag-tool', 'd']);
+    this.toolMapping.set(ToolId.SHITTY_CIRCLE_TOOL, ['', 's']);
 
     this.bindMouseEvents();
     this.bindKeyEvents();
@@ -39,7 +40,10 @@ export default class Ui {
     }
 
     this.toolMapping.forEach(([id, shortcut], toolId) => {
-      let element = <HTMLElement> this.toolbar.querySelector("#" + id);
+      if (id === '') {
+        return;
+      }
+      let element = this.toolbar.querySelector('#' + id) as HTMLElement;
       if (toolId === tool) {
         element.classList.add('selected');
       } else {
@@ -61,7 +65,7 @@ export default class Ui {
       }
       this.isMouseDown = false;
     };
-    
+
     overlay.onmouseout = (e: MouseEvent) => {
       this.cancelHover();
     };
@@ -94,14 +98,17 @@ export default class Ui {
         this.cancelHover();
         return;
       }
-      
+
       console.log(e.keyCode);
     }
   }
 
   private bindToolbar() {
     this.toolMapping.forEach(([id, shortcut], tool) => {
-      const element = <HTMLElement> this.toolbar.querySelector('#' + id);
+      if (id === '') {
+        return;
+      }
+      const element = this.toolbar.querySelector('#' + id) as HTMLElement;
       element.onclick = () => {
         this.app.setCurrentTool(tool);
       };
