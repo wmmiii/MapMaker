@@ -85,7 +85,7 @@ export default class Renderer {
     ctx.translate(this.offset.x, this.offset.y);
     ctx.lineWidth = this.lineWidth;
 
-    map.getTiles().forEach((tile) => {
+    map.forEachTile((tile) => {
       tile.getWallEdges().forEach((edge: WallEdge, region: Region) => {
         if (edge === WallEdge.BARRIER) {
           ctx.strokeStyle = this.barrierColor;

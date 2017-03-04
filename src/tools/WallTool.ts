@@ -28,7 +28,7 @@ export default class WallTool implements Tool {
   }
   
   select(startCoords: Vec, endCoords: Vec): void {
-    const map = this.app.getMap();
+    let map = this.app.getMap();
     const selected = this.resolver.resolve(
         this.app.toMapSpace(startCoords),
         this.app.toMapSpace(endCoords));
@@ -37,25 +37,25 @@ export default class WallTool implements Tool {
       let tile = map.getTile(selected[0].tileIndex);
       if (!tile) {
         tile = new Tile.Tile(selected[0].tileIndex);
-        map.addTile(tile);
       } 
       
       const region = selected[0].tileRegion;
       if (region.isEdge()) {
         if (tile.getWallEdge(region) === WallEdge.NONE
           || !tile.getWallEdge(region)) {
-          tile.setWallEdge(region, WallEdge.BARRIER);
+          tile = tile.setWallEdge(region, WallEdge.BARRIER);
         } else {
-          tile.setWallEdge(region, WallEdge.NONE);
+          tile = tile.setWallEdge(region, WallEdge.NONE);
         }
       } else if (region.isFill()) {
         if (tile.getWallFill(region) === WallFill.NONE
           || !tile.getWallFill(region)) {
-          tile.setWallFill(region, WallFill.BARRIER);
+          tile = tile.setWallFill(region, WallFill.BARRIER);
         } else {
-          tile.setWallFill(region, WallFill.NONE);
+          tile = tile.setWallFill(region, WallFill.NONE);
         }
       }
+      map = map.setTile(tile);
 
     } else {
       selected.map((regionIndex): [Tile.Tile, Tile.RegionIndex] => 
@@ -70,22 +70,22 @@ export default class WallTool implements Tool {
         .filter(([tile, regionIndex]) => this.canApply(tile, regionIndex))
         .map(([tile, region]) => {
           if (region.isEdge()) {
-            tile.setWallEdge(region, WallEdge.BARRIER);
+            return tile.setWallEdge(region, WallEdge.BARRIER);
           } else {
-            tile.setWallFill(region, WallFill.BARRIER);
+            return tile.setWallFill(region, WallFill.BARRIER);
           }
-          return tile;
         })
-        .forEach((tile) => map.addTile(tile));
+        .forEach((tile) => {
+          map = map.setTile(tile);
+        });
     }
 
+    this.app.setMap(map);
     this.app.setHovered([]);
   }
 
   private canApply(tile: Tile.Tile, region: Tile.Region): boolean {
-    if (!tile) {
-      return true;
-    } else if (region.isEdge()) {
+    if (region.isEdge()) {
       return tile.getWallEdge(region) === WallEdge.NONE;
     } else {
       return tile.getWallFill(region) === WallFill.NONE;

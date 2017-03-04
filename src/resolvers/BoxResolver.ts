@@ -18,11 +18,11 @@ export default class BoxResolver extends RegionResolver {
   }
 
   resolve(startCoords: Vec, endCoords: Vec): RegionIndex[] {
-    const tileCoords = Vec.of(startCoords.x % 1, startCoords.y % 1);
+    const tileCoords = startCoords.mod(1);
 
     // Calculate starting index
-    const baseX = Math.floor(startCoords.x);
-    const baseY = Math.floor(startCoords.y);
+    const baseX = startCoords.floor().x;
+    const baseY = startCoords.floor().y;
 
     // Calculate bounding indicies
     const left = Math.floor(Math.min(startCoords.x, endCoords.x));

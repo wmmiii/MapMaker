@@ -1,24 +1,21 @@
+///<reference path='../lib/immutable-js/dist/immutable.d.ts'/>
 import { WallEdge, WallFill } from 'Wall';
 
 export class Tile {
-  readonly index: Index;
-
-  private wallEdgeRegions: Map<Region, WallEdge>;
-  private wallFillRegions: Map<Region, WallFill>;
-
-  constructor(index: Index) {
-    this.index = index;
-    this.wallEdgeRegions = new Map();
-    this.wallFillRegions = new Map();
+  constructor(readonly index: Index,
+    private wallEdgeRegions?: Immutable.Map<Region, WallEdge>,
+    private wallFillRegions?: Immutable.Map<Region, WallFill>) {
+    this.wallEdgeRegions = wallEdgeRegions || Immutable.Map<Region, WallEdge>();
+    this.wallFillRegions = wallFillRegions || Immutable.Map<Region, WallFill>();
   }
 
   noState(): boolean {
-    const hasWallEdge = [...this.wallEdgeRegions.values()].some(edge => edge !== WallEdge.NONE);
-    const hasWallFill = [...this.wallFillRegions.values()].some(fill => fill !== WallFill.NONE);
+    const hasWallEdge = this.wallEdgeRegions.some(edge => edge !== WallEdge.NONE);
+    const hasWallFill = this.wallFillRegions.some(fill => fill !== WallFill.NONE);
     return !(hasWallEdge || hasWallFill);
   }
 
-  getWallEdges(): Map<Region, WallEdge> {
+  getWallEdges(): Immutable.Map<Region, WallEdge> {
     return this.wallEdgeRegions;
   }
 
@@ -26,21 +23,19 @@ export class Tile {
     if (!region.isEdge()) {
       throw new TypeError("Tried to get wall edge style of non-edge region.");
     }
-    const edgeRegions = this.wallEdgeRegions;
-    if (!edgeRegions.get(region)) {
-      edgeRegions.set(region, WallEdge.NONE);
-    }
-    return edgeRegions.get(region);
+    return this.wallEdgeRegions.get(region) || WallEdge.NONE;
   }
 
-  setWallEdge(region: Region, edge: WallEdge): void {
+  setWallEdge(region: Region, edge: WallEdge): Tile {
     if (!region.isEdge()) {
       throw new TypeError("Tried to set wall edge style of non-edge region.");
     }
-    this.wallEdgeRegions.set(region, edge);
+    return new Tile(this.index,
+      this.wallEdgeRegions.set(region, edge),
+      this.wallFillRegions);
   }
 
-  getWallFills(): Map<Region, WallFill> {
+  getWallFills(): Immutable.Map<Region, WallFill> {
     return this.wallFillRegions;
   }
 
@@ -48,18 +43,16 @@ export class Tile {
     if (!region.isFill()) {
       throw new TypeError("Tried to get wall fill style of non-fill region.");
     }
-    const fillRegions = this.wallFillRegions;
-    if (!fillRegions.get(region)) {
-      fillRegions.set(region, WallFill.NONE);
-    }
-    return fillRegions.get(region);
+    return this.wallFillRegions.get(region) || WallFill.NONE;
   }
 
-  setWallFill(region: Region, fill: WallFill): void {
+  setWallFill(region: Region, fill: WallFill): Tile {
     if (!region.isFill()) {
       throw new TypeError("Tried to set wall fill style of non-fill region.");
     }
-    this.wallFillRegions.set(region, fill);
+    return new Tile(this.index,
+      this.wallEdgeRegions,
+      this.wallFillRegions.set(region, fill));
   }
 }
 

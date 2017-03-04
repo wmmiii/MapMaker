@@ -23,9 +23,12 @@ export const init = (): App => {
 }
 
 export default class App {
-  private map: GameMap;
-  private currentTool: Tool;
+  private mapHistory: Array<GameMap>;
+  private currentMap: number;
+  private lastMap: number;
+
   private tools: Map<ToolId, Tool>;
+  private currentTool: Tool;
 
   private container: HTMLElement;
   private mapCanvas: HTMLCanvasElement;
@@ -46,7 +49,11 @@ export default class App {
     this.ui = new Ui(this, container, toolbar);
     this.renderer = new Renderer(this.mapCanvas, this.hoverCanvas, this.tileSize);
 
-    this.map = new GameMap();
+    this.mapHistory = new Array<GameMap>();
+    this.currentMap = 0;
+    this.lastMap = 0;
+    this.mapHistory[0] = new GameMap();
+    
     this.tools = new Map();
     this.tools.set(ToolId.BOX_WALL, new WallTool(this, BoxResolver.getInstance()));
     this.tools.set(ToolId.CIRCLE_WALL, new WallTool(this, CircleResolver.getInstance()));
@@ -71,11 +78,26 @@ export default class App {
 
   /* Member actions */
   getMap(): GameMap {
-    return this.map;
+    return this.mapHistory[this.currentMap];
   }
 
   setMap(map: GameMap): void {
-    this.map = map;
+    this.lastMap = ++this.currentMap;
+    this.mapHistory[this.currentMap] = map;
+  }
+
+  undo() {
+    if (this.currentMap > 0) {
+      this.currentMap--;
+      this.render();
+    }
+  }
+
+  redo() {
+    if (this.currentMap < this.lastMap) {
+      this.currentMap++;
+      this.render();
+    }
   }
 
   getOffset(): Vec {
@@ -121,6 +143,6 @@ export default class App {
   }
 
   private render(): void {
-    this.renderer.render(this.map, this.offset, this.hovered);
+    this.renderer.render(this.mapHistory[this.currentMap], this.offset, this.hovered);
   }
 }

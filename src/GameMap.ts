@@ -1,28 +1,25 @@
+///<reference path='../lib/immutable-js/dist/immutable.d.ts'/>
 import { Tile, Index } from 'Tile';
 
 export default class GameMap {
-  private tileMap: Map<Index, Tile>;
-
-  constructor() {
-    this.tileMap = new Map();
+  constructor(private tileMap?: Immutable.Map<Index, Tile>) {
+    this.tileMap = tileMap || Immutable.Map<Index, Tile>();
   }
 
   getTile(index: Index): Tile {
     return this.tileMap.get(index);
   }
 
-  getTiles(): Tile[] {
-    return Array.from(this.tileMap.values());
+  forEachTile(func: (tile: Tile) => void): void {
+    this.tileMap.forEach(func);
   }
 
-  addTile(tile: Tile): void {
-    this.tileMap.set(tile.index, tile);
+  setTile(tile: Tile): GameMap {
+    return new GameMap(this.tileMap.set(tile.index, tile));
   }
 
-  removeTile(index: Index): Tile {
-    const tile = this.tileMap.get(index);
-    this.tileMap.delete(index);
-    return tile;
+  removeTile(index: Index): GameMap {
+    return new GameMap(this.tileMap.remove(index));
   }
 }
 

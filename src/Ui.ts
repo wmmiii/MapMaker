@@ -93,6 +93,15 @@ export default class Ui {
         return;
       }
 
+      if (e.ctrlKey) {
+        if (e.key === 'z') {
+          this.app.undo();
+        } else if (e.key === 'y') {
+          this.app.redo();
+        }
+        return;
+      }
+
       // Bind ESC key to cancel
       if (e.keyCode === 27) {
         this.cancelHover();

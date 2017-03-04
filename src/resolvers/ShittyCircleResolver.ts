@@ -23,7 +23,6 @@ export default class ShittyCircleResolver extends RegionResolver {
 
     // Calculate circle things
     const center = this.normalizeStart(startCoords);
-    console.log(center);
     const offset = center.x % 1;
     const difference = endCoords.sub(center);
     const radSqr = Math.pow(difference.x, 2) + Math.pow(difference.y, 2);
