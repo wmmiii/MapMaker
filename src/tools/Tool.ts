@@ -9,10 +9,10 @@ export interface Tool {
 export enum ToolId {
   NONE,
 
-  MOVE,
-
   BOX_WALL,
   CIRCLE_WALL,
   DIAG_WALL,
-  SHITTY_CIRCLE_TOOL
+  ERASER,
+  MOVE,
+  SHITTY_CIRCLE
 }

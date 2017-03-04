@@ -42,6 +42,10 @@ export default class Renderer {
     }
   }
 
+  public setTileSize(pixels: number) {
+    this.tileSize = pixels;
+  }
+
   private clear() {
     this.mapCtx.fillStyle = this.bgColor;
     this.mapCtx.clearRect(0, 0, this.mapCanvas.width, this.mapCanvas.height);

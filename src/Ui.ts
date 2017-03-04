@@ -23,7 +23,8 @@ export default class Ui {
     this.toolMapping.set(ToolId.BOX_WALL, ['box-tool', 'b']);
     this.toolMapping.set(ToolId.CIRCLE_WALL, ['circle-tool', 'c']);
     this.toolMapping.set(ToolId.DIAG_WALL, ['diag-tool', 'd']);
-    this.toolMapping.set(ToolId.SHITTY_CIRCLE_TOOL, ['', 's']);
+    this.toolMapping.set(ToolId.ERASER, ['eraser-tool', 'e']);
+    this.toolMapping.set(ToolId.SHITTY_CIRCLE, ['', 's']);
 
     this.bindMouseEvents();
     this.bindKeyEvents();
@@ -78,6 +79,11 @@ export default class Ui {
         this.app.hover(currentPos, currentPos);
       }
     };
+
+    overlay.onwheel = (e: MouseWheelEvent) => {
+      this.app.zoom(e.wheelDelta / 120, Vec.of(e.clientX, e.clientY));
+      this.app.cancel();
+    };
   }
 
   private bindKeyEvents() {
@@ -89,6 +95,7 @@ export default class Ui {
         }
       });
       if (foundTool) {
+        this.app.cancel();
         this.app.setCurrentTool(foundTool);
         return;
       }

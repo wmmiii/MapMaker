@@ -1,6 +1,7 @@
 import BoxResolver from 'resolvers/BoxResolver';
 import CircleResolver from 'resolvers/CircleResolver';
 import DiagResolver from 'resolvers/DiagResolver';
+import EraserTool from 'tools/EraserTool';
 import GameMap from 'GameMap';
 import MoveTool from 'tools/MoveTool';
 import ShittyCircleResolver from 'resolvers/ShittyCircleResolver';
@@ -58,7 +59,8 @@ export default class App {
     this.tools.set(ToolId.BOX_WALL, new WallTool(this, BoxResolver.getInstance()));
     this.tools.set(ToolId.CIRCLE_WALL, new WallTool(this, CircleResolver.getInstance()));
     this.tools.set(ToolId.DIAG_WALL, new WallTool(this, DiagResolver.getInstance()));
-    this.tools.set(ToolId.SHITTY_CIRCLE_TOOL, new WallTool(this, ShittyCircleResolver.getInstance()));
+    this.tools.set(ToolId.ERASER, new EraserTool(this));
+    this.tools.set(ToolId.SHITTY_CIRCLE, new WallTool(this, ShittyCircleResolver.getInstance()));
     this.tools.set(ToolId.MOVE, new MoveTool(this));
     this.setCurrentTool(ToolId.BOX_WALL);
 
@@ -100,6 +102,15 @@ export default class App {
     }
   }
 
+  zoom(amount: number, loc: Vec) {
+    const oldSIze = this.tileSize;
+    this.setTileSize(this.tileSize + amount);
+    if (oldSIze !== this.tileSize) {
+      const scale = amount / oldSIze;
+      this.setOffset(this.offset.sub(loc.sub(this.offset).mul(scale)));
+    }
+  }
+
   getOffset(): Vec {
     return this.offset;
   }
@@ -110,6 +121,17 @@ export default class App {
 
   getTileSize(): number {
     return this.tileSize;
+  }
+
+  setTileSize(pixels: number) {
+    if (pixels > 80) {
+      pixels = 80;
+    } else if (pixels < 10) {
+      pixels = 10;
+    }
+    this.tileSize = pixels;
+    this.renderer.setTileSize(this.tileSize);
+    this.render();
   }
 
   setHovered(hovered: RegionIndex[]): void {
