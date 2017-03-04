@@ -18,7 +18,7 @@ export default class BoxResolver extends RegionResolver {
   }
 
   resolve(startCoords: Vec, endCoords: Vec): RegionIndex[] {
-    const tileCoords = startCoords.mod(1);
+    const tileCoords = startCoords.sub(startCoords.floor());
 
     // Calculate starting index
     const baseX = startCoords.floor().x;
@@ -55,10 +55,11 @@ export default class BoxResolver extends RegionResolver {
   }
 
   private resolveStart(coords: Vec, baseX: number, baseY: number): RegionIndex {
+    console.log(coords);
     const edgeDist = BoxResolver.edgeDist;
 
     const distLeft = coords.x;
-    const distRight = 1 - coords.x
+    const distRight = 1 - coords.x;
     const distTop = coords.y;
     const distBottom = 1 - coords.y;
 

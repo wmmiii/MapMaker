@@ -11,6 +11,10 @@ export default class Vec {
     this.y = y;
   }
 
+  abs(): Vec {
+    return Vec.of(Math.abs(this.x), Math.abs(this.y));
+  }
+
   add(vec: Vec): Vec {
     return Vec.of(this.x + vec.x, this.y + vec.y);
   }

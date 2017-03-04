@@ -29,6 +29,8 @@ export default class Ui {
     this.bindMouseEvents();
     this.bindKeyEvents();
     this.bindToolbar();
+
+    this.overlay.focus();
   }
 
   public setTool(tool: ToolId): void {

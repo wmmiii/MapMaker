@@ -26,8 +26,17 @@ export default class CircleResolver extends RegionResolver {
     // Calculate circle things
     const offset = center.x % 1;
     const difference = endCoords.sub(center);
-    const radSqr = Math.pow(difference.x, 2) + Math.pow(difference.y, 2);
-    const rad = Math.ceil(Math.sqrt(radSqr));
+    let radSqr = Math.pow(difference.x, 2) + Math.pow(difference.y, 2);
+    let rad = Math.ceil(Math.sqrt(radSqr));
+
+    if (offset === 0.5 && rad < 2) {
+      return [
+        this.newIndex(baseX, baseY, Region.TOP_EDGE),
+        this.newIndex(baseX, baseY, Region.LEFT_EDGE),
+        this.newIndex(baseX, baseY + 1, Region.TOP_EDGE),
+        this.newIndex(baseX + 1, baseY, Region.LEFT_EDGE)
+      ];
+    }
 
     const elements: RegionIndex[] = [];
 

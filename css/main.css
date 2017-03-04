@@ -28,6 +28,10 @@ html, body {
   z-index: 3;
 }
 
+#canvas-container .overlay:focus {
+  outline: none;
+}
+
 canvas {
   position: absolute;
   top: 0;
