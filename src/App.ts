@@ -1,11 +1,15 @@
 import BoxResolver from 'resolvers/BoxResolver';
 import CircleResolver from 'resolvers/CircleResolver';
 import DiagResolver from 'resolvers/DiagResolver';
+import { Edge, Fill } from 'RegionTypes';
 import EraserTool from 'tools/EraserTool';
+import FillResolver from 'resolvers/FillResolver';
 import GameMap from 'GameMap';
+import { Hover } from 'Hover';
 import MoveTool from 'tools/MoveTool';
 import ShittyCircleResolver from 'resolvers/ShittyCircleResolver';
 import Renderer from 'Renderer';
+import TerrainTool from 'tools/TerrainTool';
 import {
   Tile,
   Index,
@@ -37,7 +41,7 @@ export default class App {
   private renderer: Renderer;
   private ui: Ui;
 
-  private hovered: RegionIndex[];
+  private hovered: [RegionIndex, Hover][];
   private offset: Vec;
 
   private tileSize: number = 40;
@@ -59,6 +63,8 @@ export default class App {
     this.tools.set(ToolId.BOX_WALL, new WallTool(this, BoxResolver.getInstance()));
     this.tools.set(ToolId.CIRCLE_WALL, new WallTool(this, CircleResolver.getInstance()));
     this.tools.set(ToolId.DIAG_WALL, new WallTool(this, DiagResolver.getInstance()));
+    this.tools.set(ToolId.TERRAIN_DIFFICULT, new TerrainTool(this, Fill.TERRAIN_DIFFICULT));
+    this.tools.set(ToolId.TERRAIN_WATER, new TerrainTool(this, Fill.TERRAIN_WATER));
     this.tools.set(ToolId.ERASER, new EraserTool(this));
     this.tools.set(ToolId.SHITTY_CIRCLE, new WallTool(this, ShittyCircleResolver.getInstance()));
     this.tools.set(ToolId.MOVE, new MoveTool(this));
@@ -134,7 +140,7 @@ export default class App {
     this.render();
   }
 
-  setHovered(hovered: RegionIndex[]): void {
+  setHovered(hovered: [RegionIndex, Hover][]): void {
     this.hovered = hovered;
   }
 

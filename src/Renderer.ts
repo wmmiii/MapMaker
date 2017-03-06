@@ -1,26 +1,24 @@
-import Edge from 'Edge';
-import Fill from 'Fill';
+import BattleMat from 'styles/BattleMat';
+import { Edge, Fill } from 'RegionTypes';
 import GameMap from 'GameMap';
+import { Hover } from 'Hover';
+import { Style } from 'styles/Style';
 import {
   Index,
   Region,
   RegionIndex
 } from 'Tile';
 import Vec from 'Vec';
-import { WallEdge, WallFill } from 'Wall';
 
 export default class Renderer {
-  private bgColor: string = "#efece8";
-  private gridColor: string = "rgba(0, 0, 0, 0.1)";
-  private hoverColor: string = "#25BCDB";
-  private barrierColor: string = "#3a332a";
   private tileSize: number = 40;
-  private lineWidth: number = 2;
+  private diffPatt: any;
   private mapCanvas: HTMLCanvasElement;
   private mapCtx: CanvasRenderingContext2D;
   private hoverCanvas: HTMLCanvasElement;
   private hoverCtx: CanvasRenderingContext2D;
   private offset: Vec;
+  private style: Style;
 
   constructor(mainCanvas: HTMLCanvasElement, hoverCanvas: HTMLCanvasElement, tileSize: number) {
     this.mapCanvas = mainCanvas;
@@ -28,11 +26,13 @@ export default class Renderer {
 
     this.hoverCanvas = hoverCanvas;
     this.hoverCtx = hoverCanvas.getContext("2d");
-    
+
     this.tileSize = tileSize;
+
+    this.style = BattleMat.getInstatnce();
   }
 
-  public render(map: GameMap, offset: Vec, hovered: RegionIndex[]) {
+  public render(map: GameMap, offset: Vec, hovered: [RegionIndex, Hover][]) {
     this.offset = offset;
     this.clear();
     this.drawMap(map);
@@ -47,7 +47,7 @@ export default class Renderer {
   }
 
   private clear() {
-    this.mapCtx.fillStyle = this.bgColor;
+    this.mapCtx.fillStyle = this.style.bgFill();
     this.mapCtx.clearRect(0, 0, this.mapCanvas.width, this.mapCanvas.height);
     this.mapCtx.fillRect(0, 0, this.mapCanvas.width, this.mapCanvas.height);
     this.hoverCtx.clearRect(0, 0, this.mapCanvas.width, this.mapCanvas.height);
@@ -63,8 +63,8 @@ export default class Renderer {
     const yShift = this.offset.y % tileSize;
 
     ctx.save();
-    ctx.strokeStyle = this.gridColor;
-    ctx.lineWidth = this.lineWidth;
+    ctx.strokeStyle = this.style.grid();
+    ctx.lineWidth = this.style.lineWidth();
     ctx.lineCap = "butt";
 
     for (let i = xShift; i <= canvasWidth; i += tileSize) {
@@ -84,24 +84,33 @@ export default class Renderer {
 
   private drawMap(map: GameMap) {
     const ctx = this.mapCtx;
+    const tileSize = this.tileSize;
     ctx.save();
 
     ctx.translate(this.offset.x, this.offset.y);
-    ctx.lineWidth = this.lineWidth;
+    ctx.lineWidth = this.style.lineWidth();
+
+    const diffDist = 12;
 
     map.forEachTile((tile) => {
-      tile.getWallEdges().forEach((edge: WallEdge, region: Region) => {
-        if (edge === WallEdge.BARRIER) {
-          ctx.strokeStyle = this.barrierColor;
-          ctx.fillStyle = this.barrierColor;
+      tile.getEdges().forEach((edge: Edge, region: Region) => {
+        if (edge === Edge.BARRIER) {
+          ctx.strokeStyle = this.style.barrierLine();
+          ctx.fillStyle = this.style.barrierFill();
           this.drawRegion(ctx, new RegionIndex(tile.index, region), true);
         }
       });
-      tile.getWallFills().forEach((fill: WallFill, region: Region) => {
-        if (fill === WallFill.BARRIER) {
-          ctx.strokeStyle = this.barrierColor;
-          ctx.fillStyle = this.barrierColor;
+      tile.getFills().forEach((fill: Fill, region: Region) => {
+        if (fill === Fill.BARRIER) {
+          ctx.strokeStyle = this.style.barrierLine();
+          ctx.fillStyle = this.style.barrierFill();
           this.drawRegion(ctx, new RegionIndex(tile.index, region), true);
+        } else if (fill === Fill.TERRAIN_DIFFICULT) {
+          ctx.fillStyle = this.style.terrainDifficult();
+          this.drawRegion(ctx, new RegionIndex(tile.index, region));
+        } else if (fill === Fill.TERRAIN_WATER) {
+          ctx.fillStyle = this.style.terrainWater();
+          this.drawRegion(ctx, new RegionIndex(tile.index, region));
         }
       });
     });
@@ -109,60 +118,87 @@ export default class Renderer {
     ctx.restore();
   }
 
-  private drawHovered(hovered: RegionIndex[]) {
+  private drawHovered(hovered: [RegionIndex, Hover][]) {
     const ctx = this.hoverCtx;
     ctx.save();
 
     ctx.translate(this.offset.x, this.offset.y);
-    ctx.fillStyle = this.hoverColor;
-    ctx.strokeStyle = this.hoverColor;
     ctx.lineWidth = 8;
     ctx.lineCap = "round";
 
-    hovered.forEach(tileRegion => this.drawRegion(ctx, tileRegion));
+    hovered.forEach(([regionIndex, hover]) => {
+      if (hover === Hover.ADD) {
+        ctx.fillStyle = this.style.hoverAdd();
+        ctx.strokeStyle = this.style.hoverAdd();
+      } else if (hover === Hover.REMOVE) {
+        ctx.fillStyle = this.style.hoverRemove();
+        ctx.strokeStyle = this.style.hoverRemove();
+      } else {
+        throw new Error();
+      }
+
+      this.drawRegion(ctx, regionIndex);
+    });
 
     ctx.restore();
   }
 
+  /**
+   * Draws a region in map-space using whatever styles were set on ctx before.
+   * 
+   * @param ctx The rendering context to draw the region to. 
+   * @param regionIndex The index describing the region to draw.
+   * @param includeEdges If lines should be stroked for fill regions.
+   */
   private drawRegion(ctx: CanvasRenderingContext2D, regionIndex: RegionIndex, includeEdges: boolean = false) {
     const tileSize = this.tileSize;
     ctx.save();
     ctx.translate(regionIndex.tileIndex.x * tileSize, regionIndex.tileIndex.y * tileSize);
+    this.traceRegion(ctx, regionIndex.tileRegion);
 
-    switch (regionIndex.tileRegion) {
+    ctx.restore();
+    if (regionIndex.tileRegion.isEdge() || includeEdges) {
+      ctx.stroke();
+    }
+    if (regionIndex.tileRegion.isFill()) {
+      ctx.fill();
+    }
+  }
+
+  private traceRegion(ctx: CanvasRenderingContext2D, region: Region) {
+    const tileSize = this.tileSize;
+    switch (region) {
       case Region.TOP_EDGE:
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(tileSize, 0);
-        ctx.stroke();
         break;
 
       case Region.LEFT_EDGE:
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(0, tileSize);
-        ctx.stroke();
         break;
 
       case Region.NW_CROSS:
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(tileSize, tileSize);
-        ctx.stroke();
         break;
 
       case Region.NE_CROSS:
         ctx.beginPath();
         ctx.moveTo(tileSize, 0);
         ctx.lineTo(0, tileSize);
-        ctx.stroke();
         break;
 
       case Region.SQUARE:
-        ctx.fillRect(0, 0, tileSize, tileSize);
-        if (includeEdges) {
-          ctx.strokeRect(0, 0, tileSize, tileSize);
-        }
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(tileSize, 0);
+        ctx.lineTo(tileSize, tileSize);
+        ctx.lineTo(0, tileSize);
+        ctx.closePath();
         break;
 
       case Region.UPPER_LEFT:
@@ -171,10 +207,6 @@ export default class Renderer {
         ctx.lineTo(0, 0);
         ctx.lineTo(tileSize, 0);
         ctx.closePath();
-        ctx.fill();
-        if (includeEdges) {
-          ctx.stroke();
-        }
         break;
 
       case Region.UPPER_RIGHT:
@@ -183,10 +215,6 @@ export default class Renderer {
         ctx.lineTo(tileSize, 0);
         ctx.lineTo(tileSize, tileSize);
         ctx.closePath();
-        ctx.fill();
-        if (includeEdges) {
-          ctx.stroke();
-        }
         break;
 
       case Region.LOWER_RIGHT:
@@ -195,10 +223,6 @@ export default class Renderer {
         ctx.lineTo(tileSize, tileSize);
         ctx.lineTo(0, tileSize);
         ctx.closePath();
-        ctx.fill();
-        if (includeEdges) {
-          ctx.stroke();
-        }
         break;
 
       case Region.LOWER_LEFT:
@@ -207,13 +231,7 @@ export default class Renderer {
         ctx.lineTo(0, tileSize);
         ctx.lineTo(0, 0);
         ctx.closePath();
-        ctx.fill();
-        if (includeEdges) {
-          ctx.stroke();
-        }
         break;
     }
-
-    ctx.restore();
   }
 };

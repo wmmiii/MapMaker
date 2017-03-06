@@ -1,9 +1,10 @@
 import App from 'App';
+import { Edge, Fill } from 'RegionTypes';
+import { Hover } from 'Hover';
 import SquareResolver from 'resolvers/SquareResolver';
 import { Tool } from 'Tool';
 import * as Tile from 'Tile';
 import Vec from 'Vec';
-import { WallEdge, WallFill } from 'Wall';
 
 export default class EraserTool implements Tool {
   private app: App;
@@ -21,12 +22,14 @@ export default class EraserTool implements Tool {
   hover(startCoords: Vec, endCoords: Vec): void {
     const map = this.app.getMap();
     const hovered = this.resolver.resolve(
-        this.app.toMapSpace(startCoords),
-        this.app.toMapSpace(endCoords));
+      this.app.toMapSpace(startCoords),
+      this.app.toMapSpace(endCoords))
+      .map((regionIndex): [Tile.RegionIndex, Hover] =>
+        [regionIndex, Hover.REMOVE]);
 
     this.app.setHovered(hovered);
   }
-  
+
   select(startCoords: Vec, endCoords: Vec): void {
     startCoords = this.app.toMapSpace(startCoords);
     endCoords = this.app.toMapSpace(endCoords);
@@ -41,14 +44,14 @@ export default class EraserTool implements Tool {
       for (let y = top; y <= bottom; y++) {
         const index = Tile.Index.of(x, y);
         const tile = map.getTile(index);
-        const restoreEdges = new Map<Tile.Region, WallEdge>();
-        
+        const restoreEdges = new Map<Tile.Region, Edge>();
+
         if (x === left && tile) {
-          restoreEdges.set(Tile.Region.LEFT_EDGE, tile.getWallEdge(Tile.Region.LEFT_EDGE));
+          restoreEdges.set(Tile.Region.LEFT_EDGE, tile.getEdge(Tile.Region.LEFT_EDGE));
         }
 
         if (y === top && tile) {
-          restoreEdges.set(Tile.Region.TOP_EDGE, tile.getWallEdge(Tile.Region.TOP_EDGE));
+          restoreEdges.set(Tile.Region.TOP_EDGE, tile.getEdge(Tile.Region.TOP_EDGE));
         }
 
         map = map.removeTile(Tile.Index.of(x, y));
@@ -56,7 +59,7 @@ export default class EraserTool implements Tool {
         if (restoreEdges.size > 0) {
           let tile = new Tile.Tile(index);
           restoreEdges.forEach((edge, region) => {
-            tile = tile.setWallEdge(region, edge);
+            tile = tile.setEdge(region, edge);
           });
           map = map.setTile(tile);
         }

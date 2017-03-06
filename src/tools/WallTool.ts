@@ -1,9 +1,10 @@
 import App from 'App';
+import { Edge, Fill } from 'RegionTypes';
+import { Hover } from 'Hover';
 import RegionResolver from 'resolvers/RegionResolver';
 import { Tool } from 'Tool';
 import * as Tile from 'Tile';
 import Vec from 'Vec';
-import { WallEdge, WallFill } from 'Wall';
 
 export default class WallTool implements Tool {
   private app: App;
@@ -22,7 +23,9 @@ export default class WallTool implements Tool {
     const map = this.app.getMap();
     const hovered = this.resolver.resolve(
       this.app.toMapSpace(startCoords),
-      this.app.toMapSpace(endCoords));
+      this.app.toMapSpace(endCoords))
+      .map((regionIndex): [Tile.RegionIndex, Hover] =>
+        [regionIndex, Hover.ADD]);
 
     this.app.setHovered(hovered);
   }
@@ -34,25 +37,23 @@ export default class WallTool implements Tool {
       this.app.toMapSpace(endCoords));
 
     if (selected.length === 1) {
-      let tile = map.getTile(selected[0].tileIndex);
-      if (!tile) {
-        tile = new Tile.Tile(selected[0].tileIndex);
-      }
+      let tile = map.getTile(selected[0].tileIndex)
+        || new Tile.Tile(selected[0].tileIndex);
 
       const region = selected[0].tileRegion;
       if (region.isEdge()) {
-        if (tile.getWallEdge(region) === WallEdge.NONE
-          || !tile.getWallEdge(region)) {
-          tile = tile.setWallEdge(region, WallEdge.BARRIER);
+        if (tile.getEdge(region) === Edge.NONE
+          || !tile.getEdge(region)) {
+          tile = tile.setEdge(region, Edge.BARRIER);
         } else {
-          tile = tile.setWallEdge(region, WallEdge.NONE);
+          tile = tile.setEdge(region, Edge.NONE);
         }
       } else if (region.isFill()) {
-        if (tile.getWallFill(region) === WallFill.NONE
-          || !tile.getWallFill(region)) {
-          tile = tile.setWallFill(region, WallFill.BARRIER);
+        if (tile.getFill(region) === Fill.NONE
+          && tile.getFill(Tile.Region.SQUARE) === Fill.NONE) {
+          tile = tile.setFill(region, Fill.BARRIER);
         } else {
-          tile = tile.setWallFill(region, WallFill.NONE);
+          tile = tile.setFill(region, Fill.NONE);
         }
       }
       map = map.setTile(tile);
@@ -66,9 +67,9 @@ export default class WallTool implements Tool {
         const region = regionIndex.tileRegion;
 
         if (regionIndex.tileRegion.isEdge()) {
-          modified.set(tile.index, tile.setWallEdge(region, WallEdge.BARRIER));
+          modified.set(tile.index, tile.setEdge(region, Edge.BARRIER));
         } else {
-          modified.set(tile.index, tile.setWallFill(region, WallFill.BARRIER));
+          modified.set(tile.index, tile.setFill(region, Fill.BARRIER));
         }
       });
 
@@ -83,9 +84,9 @@ export default class WallTool implements Tool {
 
   private canApply(tile: Tile.Tile, region: Tile.Region): boolean {
     if (region.isEdge()) {
-      return tile.getWallEdge(region) === WallEdge.NONE;
+      return tile.getEdge(region) === Edge.NONE;
     } else {
-      return tile.getWallFill(region) === WallFill.NONE;
+      return tile.getFill(region) === Fill.NONE;
     }
   }
 }

@@ -55,7 +55,6 @@ export default class BoxResolver extends RegionResolver {
   }
 
   private resolveStart(coords: Vec, baseX: number, baseY: number): RegionIndex {
-    console.log(coords);
     const edgeDist = BoxResolver.edgeDist;
 
     const distLeft = coords.x;

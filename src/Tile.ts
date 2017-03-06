@@ -1,58 +1,58 @@
 ///<reference path='../lib/immutable-js/dist/immutable.d.ts'/>
-import { WallEdge, WallFill } from 'Wall';
+import { Edge, Fill } from 'RegionTypes';
 
 export class Tile {
   constructor(readonly index: Index,
-    private wallEdgeRegions?: Immutable.Map<Region, WallEdge>,
-    private wallFillRegions?: Immutable.Map<Region, WallFill>) {
-    this.wallEdgeRegions = wallEdgeRegions || Immutable.Map<Region, WallEdge>();
-    this.wallFillRegions = wallFillRegions || Immutable.Map<Region, WallFill>();
+    private edgeRegions?: Immutable.Map<Region, Edge>,
+    private fillRegions?: Immutable.Map<Region, Fill>) {
+    this.edgeRegions = edgeRegions || Immutable.Map<Region, Edge>();
+    this.fillRegions = fillRegions || Immutable.Map<Region, Fill>();
   }
 
   noState(): boolean {
-    const hasWallEdge = this.wallEdgeRegions.some(edge => edge !== WallEdge.NONE);
-    const hasWallFill = this.wallFillRegions.some(fill => fill !== WallFill.NONE);
-    return !(hasWallEdge || hasWallFill);
+    const hasEdge = this.edgeRegions.some(edge => edge !== Edge.NONE);
+    const hasFill = this.fillRegions.some(fill => fill !== Fill.NONE);
+    return !(hasEdge || hasFill);
   }
 
-  getWallEdges(): Immutable.Map<Region, WallEdge> {
-    return this.wallEdgeRegions;
+  getEdges(): Immutable.Map<Region, Edge> {
+    return this.edgeRegions;
   }
 
-  getWallEdge(region: Region): WallEdge {
+  getEdge(region: Region): Edge {
     if (!region.isEdge()) {
-      throw new TypeError("Tried to get wall edge style of non-edge region.");
+      throw new TypeError("Tried to get edge style of non-edge region.");
     }
-    return this.wallEdgeRegions.get(region) || WallEdge.NONE;
+    return this.edgeRegions.get(region) || Edge.NONE;
   }
 
-  setWallEdge(region: Region, edge: WallEdge): Tile {
+  setEdge(region: Region, edge: Edge): Tile {
     if (!region.isEdge()) {
-      throw new TypeError("Tried to set wall edge style of non-edge region.");
+      throw new TypeError("Tried to set edge style of non-edge region.");
     }
     return new Tile(this.index,
-      this.wallEdgeRegions.set(region, edge),
-      this.wallFillRegions);
+      this.edgeRegions.set(region, edge),
+      this.fillRegions);
   }
 
-  getWallFills(): Immutable.Map<Region, WallFill> {
-    return this.wallFillRegions;
+  getFills(): Immutable.Map<Region, Fill> {
+    return this.fillRegions;
   }
 
-  getWallFill(region: Region): WallFill {
+  getFill(region: Region): Fill {
     if (!region.isFill()) {
-      throw new TypeError("Tried to get wall fill style of non-fill region.");
+      throw new TypeError("Tried to get fill style of non-fill region.");
     }
-    return this.wallFillRegions.get(region) || WallFill.NONE;
+    return this.fillRegions.get(region) || Fill.NONE;
   }
 
-  setWallFill(region: Region, fill: WallFill): Tile {
+  setFill(region: Region, fill: Fill): Tile {
     if (!region.isFill()) {
-      throw new TypeError("Tried to set wall fill style of non-fill region.");
+      throw new TypeError("Tried to set fill style of non-fill region.");
     }
     return new Tile(this.index,
-      this.wallEdgeRegions,
-      this.wallFillRegions.set(region, fill));
+      this.edgeRegions,
+      applyFill(region, fill, this.fillRegions, Fill.NONE));
   }
 }
 
@@ -119,4 +119,57 @@ export class RegionIndex {
     this.tileIndex = tileIndex;
     this.tileRegion = regionType;
   }
+}
+
+function applyFill<T>(region: Region, fill: T, map: Immutable.Map<Region, T>, emptyState: T):
+  Immutable.Map<Region, T> {
+  let result = map;
+  if (region === Region.SQUARE) {
+    result = map.set(region, fill);
+  } else {
+    const squareState = map.get(Region.SQUARE);
+    if (squareState && squareState !== fill) {
+      if (region === Region.UPPER_LEFT) {
+        result = result.set(Region.UPPER_LEFT, fill)
+          .set(Region.LOWER_RIGHT, squareState)
+          .set(Region.SQUARE, emptyState);
+      } else if (region === Region.UPPER_RIGHT) {
+        result = result.set(Region.UPPER_RIGHT, fill)
+          .set(Region.LOWER_LEFT, squareState)
+          .set(Region.SQUARE, emptyState);
+      } else if (region === Region.LOWER_RIGHT) {
+        result = result.set(Region.LOWER_RIGHT, fill)
+          .set(Region.UPPER_LEFT, squareState)
+          .set(Region.SQUARE, emptyState);
+      } else if (region === Region.LOWER_LEFT) {
+        result = result.set(Region.LOWER_LEFT, fill)
+          .set(Region.UPPER_RIGHT, squareState)
+          .set(Region.SQUARE, emptyState);
+      }
+    } else {
+      result = result.set(region, fill);
+    }
+  }
+
+  return optimizeFill(result, emptyState);
+}
+
+function optimizeFill<T>(map: Immutable.Map<Region, T>, emptyState: T): Immutable.Map<Region, T> {
+  const squareState = map.get(Region.SQUARE);
+  if (squareState && squareState !== emptyState) {
+    return Immutable.Map<Region, T>().set(Region.SQUARE, squareState);
+  }
+
+  const ulState = map.get(Region.UPPER_LEFT);
+
+  if (ulState && ulState !== emptyState && ulState === map.get(Region.LOWER_RIGHT)) {
+    return Immutable.Map<Region, T>().set(Region.SQUARE, map.get(Region.UPPER_LEFT));
+  }
+
+  const urState = map.get(Region.UPPER_RIGHT);
+  if (urState && urState !== emptyState && urState === map.get(Region.LOWER_LEFT)) {
+    return Immutable.Map<Region, T>().set(Region.SQUARE, map.get(Region.UPPER_RIGHT));
+  }
+
+  return map;
 }

@@ -22,6 +22,8 @@ export default class Ui {
     this.toolMapping.set(ToolId.MOVE, ['move-tool', 'm']);
     this.toolMapping.set(ToolId.BOX_WALL, ['box-tool', 'b']);
     this.toolMapping.set(ToolId.CIRCLE_WALL, ['circle-tool', 'c']);
+    this.toolMapping.set(ToolId.TERRAIN_DIFFICULT, ['terrain-difficult-tool', 'x']);
+    this.toolMapping.set(ToolId.TERRAIN_WATER, ['terrain-water-tool', 'w']);
     this.toolMapping.set(ToolId.DIAG_WALL, ['diag-tool', 'd']);
     this.toolMapping.set(ToolId.ERASER, ['eraser-tool', 'e']);
     this.toolMapping.set(ToolId.SHITTY_CIRCLE, ['', 's']);

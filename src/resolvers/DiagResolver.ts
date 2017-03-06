@@ -18,7 +18,7 @@ export default class DiagResolver extends RegionResolver {
   }
 
   resolve(startCoords: Vec, endCoords: Vec): RegionIndex[] {
-    const tileCoords = startCoords.mod(1);
+    const tileCoords = startCoords.sub(startCoords.floor());;
 
     // Calculate starting index
     const baseX = startCoords.floor().x;
