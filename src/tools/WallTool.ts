@@ -20,7 +20,6 @@ export default class WallTool implements Tool {
   }
 
   hover(startCoords: Vec, endCoords: Vec): void {
-    const map = this.app.getMap();
     const hovered = this.resolver.resolve(
       this.app.toMapSpace(startCoords),
       this.app.toMapSpace(endCoords))
@@ -42,15 +41,13 @@ export default class WallTool implements Tool {
 
       const region = selected[0].tileRegion;
       if (region.isEdge()) {
-        if (tile.getEdge(region) === Edge.NONE
-          || !tile.getEdge(region)) {
+        if (tile.getEdge(region) !== Edge.BARRIER) {
           tile = tile.setEdge(region, Edge.BARRIER);
         } else {
           tile = tile.setEdge(region, Edge.NONE);
         }
       } else if (region.isFill()) {
-        if (tile.getFill(region) === Fill.NONE
-          && tile.getFill(Tile.Region.SQUARE) === Fill.NONE) {
+        if (tile.getFill(region) !== Fill.BARRIER) {
           tile = tile.setFill(region, Fill.BARRIER);
         } else {
           tile = tile.setFill(region, Fill.NONE);
@@ -80,13 +77,5 @@ export default class WallTool implements Tool {
 
     this.app.setMap(map);
     this.app.setHovered([]);
-  }
-
-  private canApply(tile: Tile.Tile, region: Tile.Region): boolean {
-    if (region.isEdge()) {
-      return tile.getEdge(region) === Edge.NONE;
-    } else {
-      return tile.getFill(region) === Fill.NONE;
-    }
   }
 }

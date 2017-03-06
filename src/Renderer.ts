@@ -4,7 +4,6 @@ import GameMap from 'GameMap';
 import { Hover } from 'Hover';
 import { Style } from 'styles/Style';
 import {
-  Index,
   Region,
   RegionIndex
 } from 'Tile';
@@ -12,7 +11,6 @@ import Vec from 'Vec';
 
 export default class Renderer {
   private tileSize: number = 40;
-  private diffPatt: any;
   private mapCanvas: HTMLCanvasElement;
   private mapCtx: CanvasRenderingContext2D;
   private hoverCanvas: HTMLCanvasElement;
@@ -84,33 +82,39 @@ export default class Renderer {
 
   private drawMap(map: GameMap) {
     const ctx = this.mapCtx;
-    const tileSize = this.tileSize;
     ctx.save();
 
     ctx.translate(this.offset.x, this.offset.y);
     ctx.lineWidth = this.style.lineWidth();
 
-    const diffDist = 12;
-
     map.forEachTile((tile) => {
-      tile.getEdges().forEach((edge: Edge, region: Region) => {
-        if (edge === Edge.BARRIER) {
-          ctx.strokeStyle = this.style.barrierLine();
-          ctx.fillStyle = this.style.barrierFill();
-          this.drawRegion(ctx, new RegionIndex(tile.index, region), true);
-        }
-      });
       tile.getFills().forEach((fill: Fill, region: Region) => {
+        const regionIndex = new RegionIndex(tile.index, region);
         if (fill === Fill.BARRIER) {
           ctx.strokeStyle = this.style.barrierLine();
           ctx.fillStyle = this.style.barrierFill();
-          this.drawRegion(ctx, new RegionIndex(tile.index, region), true);
+          this.drawRegion(ctx, regionIndex, true);
         } else if (fill === Fill.TERRAIN_DIFFICULT) {
           ctx.fillStyle = this.style.terrainDifficult();
-          this.drawRegion(ctx, new RegionIndex(tile.index, region));
+          this.drawRegion(ctx, regionIndex);
         } else if (fill === Fill.TERRAIN_WATER) {
           ctx.fillStyle = this.style.terrainWater();
-          this.drawRegion(ctx, new RegionIndex(tile.index, region));
+          this.drawRegion(ctx, regionIndex);
+        }
+      });
+    });
+
+    map.forEachTile((tile) => {
+      tile.getEdges().forEach((edge: Edge, region: Region) => {
+        const regionIndex = new RegionIndex(tile.index, region);
+        if (edge === Edge.BARRIER) {
+          ctx.strokeStyle = this.style.barrierLine();
+          ctx.fillStyle = this.style.barrierFill();
+          this.drawRegion(ctx, regionIndex, true);
+        } else if (edge === Edge.DOOR) {
+          this.drawDoor(ctx, regionIndex, false);
+        } else if (edge === Edge.DOOR_LOCKED) {
+          this.drawDoor(ctx, regionIndex, true);
         }
       });
     });
@@ -163,6 +167,87 @@ export default class Renderer {
     if (regionIndex.tileRegion.isFill()) {
       ctx.fill();
     }
+  }
+
+  private drawDoor(ctx: CanvasRenderingContext2D, regionIndex: RegionIndex, locked: boolean) {
+    const tileSize = this.tileSize;
+    const lineWidth = this.style.lineWidth();
+
+    ctx.save();
+    ctx.translate(regionIndex.tileIndex.x * tileSize, regionIndex.tileIndex.y * tileSize);
+    ctx.fillStyle = this.style.bgFill();
+    ctx.strokeStyle = this.style.barrierLine();
+    ctx.lineWidth = lineWidth / 2;
+
+    switch (regionIndex.tileRegion) {
+      case Region.TOP_EDGE:
+        ctx.fillRect(0, -lineWidth * 2, tileSize, lineWidth * 4);
+        ctx.strokeRect(0, -lineWidth * 2, tileSize, lineWidth * 4);
+        if (locked) {
+          ctx.translate(tileSize / 2, 0);
+          this.drawLock(ctx);
+        }
+        break;
+      case Region.LEFT_EDGE:
+        ctx.fillRect(-lineWidth * 2, 0, lineWidth * 4, tileSize);
+        ctx.strokeRect(-lineWidth * 2, 0, lineWidth * 4, tileSize);
+        if (locked) {
+          ctx.translate(0, tileSize / 2);
+          this.drawLock(ctx);
+        }
+        break;
+      case Region.NW_CROSS:
+        ctx.save();
+        ctx.rotate(Math.PI / 4);
+        ctx.fillRect(0, -lineWidth * 2, tileSize * Math.SQRT2, lineWidth * 4);
+        ctx.strokeRect(0, -lineWidth * 2, tileSize * Math.SQRT2, lineWidth * 4);
+        ctx.restore();
+        if (locked) {
+          ctx.translate(tileSize / 2, tileSize / 2);
+          this.drawLock(ctx);
+        }
+        break;
+      case Region.NE_CROSS:
+        ctx.save();
+        ctx.translate(tileSize, 0);
+        ctx.rotate(Math.PI / 4);
+        ctx.fillRect(-lineWidth * 2, 0, lineWidth * 4, tileSize * Math.SQRT2);
+        ctx.strokeRect(-lineWidth * 2, 0, lineWidth * 4, tileSize * Math.SQRT2);
+        ctx.restore();
+        if (locked) {
+          ctx.translate(tileSize / 2, tileSize / 2);
+          this.drawLock(ctx);
+        }
+        break;
+    }
+
+    ctx.restore();
+  }
+
+  private drawLock(ctx: CanvasRenderingContext2D) {
+    const lineWidth = this.style.lineWidth();
+
+    ctx.fillStyle = this.style.bgFill();
+    ctx.strokeStyle = this.style.barrierLine();
+    ctx.lineWidth = lineWidth / 2;
+
+    ctx.beginPath();
+    ctx.arc(0, 0, lineWidth * 4, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = this.style.barrierLine();
+
+    ctx.beginPath();
+    ctx.arc(0, -lineWidth, lineWidth * 1.5, 0, 2 * Math.PI);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(0, -lineWidth);
+    ctx.lineTo(-lineWidth * 1, lineWidth * 3);
+    ctx.lineTo(lineWidth * 1, lineWidth * 3);
+    ctx.closePath();
+    ctx.fill();
   }
 
   private traceRegion(ctx: CanvasRenderingContext2D, region: Region) {

@@ -4,7 +4,6 @@ import Vec from 'Vec';
 
 export default class SquareResolver extends RegionResolver {
   private static instance: SquareResolver;
-  private static readonly edgeDist: number = 0.3;
 
   static getInstance(): SquareResolver {
     if (!SquareResolver.instance) {
@@ -18,12 +17,6 @@ export default class SquareResolver extends RegionResolver {
   }
 
   resolve(startCoords: Vec, endCoords: Vec): RegionIndex[] {
-    const tileCoords = startCoords.mod(1);
-
-    // Calculate starting index
-    const baseX = startCoords.floor().x;
-    const baseY = startCoords.floor().y;
-
     // Calculate bounding indicies
     const left = Math.floor(Math.min(startCoords.x, endCoords.x));
     const top = Math.floor(Math.min(startCoords.y, endCoords.y));

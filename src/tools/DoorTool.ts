@@ -1,20 +1,18 @@
 import App from 'App';
-import { Fill } from 'RegionTypes';
-import FillResolver from 'resolvers/FillResolver';
+import { Edge } from 'RegionTypes';
 import { Hover } from 'Hover';
+import EdgeResolver from 'resolvers/EdgeResolver';
 import { Tool } from 'Tool';
 import * as Tile from 'Tile';
 import Vec from 'Vec';
 
-export default class TerrainTool implements Tool {
+export default class DoorTool implements Tool {
   private app: App;
-  private terrain: Fill;
-  private resolver: FillResolver;
+  private resolver: EdgeResolver;
 
-  constructor(app: App, terrain: Fill) {
+  constructor(app: App) {
     this.app = app;
-    this.terrain = terrain;
-    this.resolver = FillResolver.getInstance();;
+    this.resolver = EdgeResolver.getInstance();
   }
 
   cancel(): void {
@@ -42,21 +40,14 @@ export default class TerrainTool implements Tool {
         || new Tile.Tile(selected[0].tileIndex);
 
       const region = selected[0].tileRegion;
-      if (tile.getFill(region) === Fill.NONE
-        && tile.getFill(Tile.Region.SQUARE) === Fill.NONE) {
-        tile = tile.setFill(region, this.terrain);
+      if (tile.getEdge(region) === Edge.DOOR) {
+        tile = tile.setEdge(region, Edge.DOOR_LOCKED);
+      } else if (tile.getEdge(region) === Edge.DOOR_LOCKED) {
+        tile = tile.setEdge(region, Edge.NONE);
       } else {
-        tile = tile.setFill(region, Fill.NONE);
+        tile = tile.setEdge(region, Edge.DOOR);
       }
       map = map.setTile(tile);
-
-    } else {
-      selected.forEach((regionIndex) => {
-        const tile = map.getTile(regionIndex.tileIndex)
-          || new Tile.Tile(regionIndex.tileIndex);
-
-        map = map.setTile(tile.setFill(regionIndex.tileRegion, this.terrain));
-      });
     }
 
     this.app.setMap(map);

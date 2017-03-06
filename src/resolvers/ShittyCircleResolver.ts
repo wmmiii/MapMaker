@@ -37,8 +37,7 @@ export default class ShittyCircleResolver extends RegionResolver {
         if (dist < rad - Math.SQRT2 || dist > rad + Math.SQRT2) {
           break;
         }
-
-        let region: Region = null;
+        
         let contained = 0;
 
         const ul = Math.pow(x + offset - 0.5, 2) + Math.pow(y + offset - 0.5, 2) <= radSqr;

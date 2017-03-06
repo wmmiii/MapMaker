@@ -1,21 +1,16 @@
 import BoxResolver from 'resolvers/BoxResolver';
 import CircleResolver from 'resolvers/CircleResolver';
 import DiagResolver from 'resolvers/DiagResolver';
-import { Edge, Fill } from 'RegionTypes';
+import DoorTool from 'tools/DoorTool';
+import { Fill } from 'RegionTypes';
 import EraserTool from 'tools/EraserTool';
-import FillResolver from 'resolvers/FillResolver';
 import GameMap from 'GameMap';
 import { Hover } from 'Hover';
 import MoveTool from 'tools/MoveTool';
 import ShittyCircleResolver from 'resolvers/ShittyCircleResolver';
 import Renderer from 'Renderer';
 import TerrainTool from 'tools/TerrainTool';
-import {
-  Tile,
-  Index,
-  Region,
-  RegionIndex
-} from 'Tile';
+import { RegionIndex } from 'Tile';
 import { Tool, ToolId } from 'tools/Tool';
 import Ui from 'Ui';
 import Vec from 'Vec';
@@ -45,7 +40,6 @@ export default class App {
   private offset: Vec;
 
   private tileSize: number = 40;
-  private edgeDist: number = 0.2;
 
   constructor(container: HTMLElement, toolbar: HTMLElement) {
     this.container = container;
@@ -63,6 +57,7 @@ export default class App {
     this.tools.set(ToolId.BOX_WALL, new WallTool(this, BoxResolver.getInstance()));
     this.tools.set(ToolId.CIRCLE_WALL, new WallTool(this, CircleResolver.getInstance()));
     this.tools.set(ToolId.DIAG_WALL, new WallTool(this, DiagResolver.getInstance()));
+    this.tools.set(ToolId.DOOR, new DoorTool(this));
     this.tools.set(ToolId.TERRAIN_DIFFICULT, new TerrainTool(this, Fill.TERRAIN_DIFFICULT));
     this.tools.set(ToolId.TERRAIN_WATER, new TerrainTool(this, Fill.TERRAIN_WATER));
     this.tools.set(ToolId.ERASER, new EraserTool(this));

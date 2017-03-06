@@ -1,5 +1,5 @@
 import App from 'App';
-import { Edge, Fill } from 'RegionTypes';
+import { Edge } from 'RegionTypes';
 import { Hover } from 'Hover';
 import SquareResolver from 'resolvers/SquareResolver';
 import { Tool } from 'Tool';
@@ -20,7 +20,6 @@ export default class EraserTool implements Tool {
   }
 
   hover(startCoords: Vec, endCoords: Vec): void {
-    const map = this.app.getMap();
     const hovered = this.resolver.resolve(
       this.app.toMapSpace(startCoords),
       this.app.toMapSpace(endCoords))

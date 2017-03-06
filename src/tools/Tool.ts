@@ -12,6 +12,7 @@ export enum ToolId {
   BOX_WALL,
   CIRCLE_WALL,
   DIAG_WALL,
+  DOOR,
   TERRAIN_DIFFICULT,
   TERRAIN_WATER,
   ERASER,

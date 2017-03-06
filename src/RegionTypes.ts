@@ -1,6 +1,8 @@
 export enum Edge {
   NONE,
-  BARRIER
+  BARRIER,
+  DOOR,
+  DOOR_LOCKED
 }
 
 export enum Fill {

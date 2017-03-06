@@ -23,7 +23,7 @@ export default class MoveTool implements Tool {
             this.startingOffset.add(endCoords.sub(startCoords)));
     }
 
-    select(startCoords: Vec, endCoords: Vec): void {
+    select(_: Vec, __: Vec): void {
         this.startingOffset = null;
     }
 }

@@ -18,7 +18,7 @@ export default class DiagResolver extends RegionResolver {
   }
 
   resolve(startCoords: Vec, endCoords: Vec): RegionIndex[] {
-    const tileCoords = startCoords.sub(startCoords.floor());;
+    const tileCoords = startCoords.sub(startCoords.floor());
 
     // Calculate starting index
     const baseX = startCoords.floor().x;
@@ -69,13 +69,6 @@ export default class DiagResolver extends RegionResolver {
   }
 
   private resolveStart(coords: Vec): Region {
-    const edgeDist = DiagResolver.cornerDist;
-
-    const distLeft = coords.x;
-    const distRight = 1 - coords.x
-    const distTop = coords.y;
-    const distBottom = 1 - coords.y;
-
     if (coords.x < 0.5) {
       if (coords.y < 0.5) {
         if (coords.x + coords.y > DiagResolver.cornerDist) {

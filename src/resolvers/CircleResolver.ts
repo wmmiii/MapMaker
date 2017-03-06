@@ -50,7 +50,6 @@ export default class CircleResolver extends RegionResolver {
           continue;
         }
 
-        let region: Region = null;
         let contained = 0;
 
         const ul = Math.pow(relative.x, 2) + Math.pow(relative.y, 2) <= radSqr;

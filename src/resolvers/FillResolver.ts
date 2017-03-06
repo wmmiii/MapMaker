@@ -49,13 +49,6 @@ export default class FillResolver extends RegionResolver {
   }
 
   private resolveStart(coords: Vec): Region {
-    const edgeDist = FillResolver.edgeDist;
-
-    const distLeft = coords.x;
-    const distRight = 1 - coords.x
-    const distTop = coords.y;
-    const distBottom = 1 - coords.y;
-
     if (coords.x < 0.5) {
       if (coords.y < 0.5) {
         if (coords.x + coords.y < FillResolver.edgeDist) {
