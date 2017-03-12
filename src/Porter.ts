@@ -11,12 +11,19 @@ export class Exporter {
     const tiles: Map<number, [{}, Set<Index>]> = new Map();
 
     map.forEachTile((tile: Tile) => {
+      if (tile.noState()) {
+        return;
+      }
       const tileJson: { [key: string]: any } = {};
       const tileShape: { [key: string]: any } = {};
       tileJson['x'] = tile.index.x;
       tileJson['y'] = tile.index.y;
 
       tile.getEdges().forEach((edge: Edge, region: Region) => {
+        if (edge === Edge.NONE) {
+          return;
+        }
+
         if (!tileShape[EDGE_KEY]) {
           tileShape[EDGE_KEY] = {};
         }
@@ -25,6 +32,10 @@ export class Exporter {
       });
 
       tile.getFills().forEach((fill: Fill, region: Region) => {
+        if (fill === Fill.NONE) {
+          return;
+        }
+
         if (!tileShape[FILL_KEY]) {
           tileShape[FILL_KEY] = {};
         }
@@ -88,13 +99,13 @@ export class Importer {
 function hashTile(tile: { [key: string]: any }): number {
   let result = 7;
   if (tile[EDGE_KEY]) {
-    for (let entry in tile[EDGE_KEY]) {
-      result = result * 37 + hashString(entry[0] + entry[1]);
+    for (let region in tile[EDGE_KEY]) {
+      result = result * 37 + hashString(region + tile[EDGE_KEY][region]);
     };
   }
   if (tile[FILL_KEY]) {
-    for (let entry in tile[FILL_KEY]) {
-      result = result * 37 + hashString(entry[0] + entry[1]);
+    for (let region in tile[FILL_KEY]) {
+      result = result * 37 + hashString(region + tile[FILL_KEY][region]);
     };
   }
   return result;
