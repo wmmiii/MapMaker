@@ -5,6 +5,7 @@
 <title>Map Maker</title>
 <link href="https://fonts.googleapis.com/css?family=Titillium+Web:200" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="css/main.css" />
+<link rel="stylesheet" type="text/css" href="css/metabar.css" />
 <link rel="stylesheet" type="text/css" href="css/toolbar.css" />
 <script src="lib/immutable-js/dist/immutable.min.js"></script>
 <script data-map="app" src="lib/require.js"></script>
@@ -25,7 +26,16 @@ let init = () => {
   <div id="canvas-container">
     <canvas id="map-canvas"></canvas>
     <canvas id="hover-canvas"></canvas>
-    <div class="overlay" tabindex="1"></did>
+    <div class="overlay" tabindex="1"></div>
+  </div>
+  <div id="metabar">
+    <div id="import" class="button">
+      Open
+    </div>
+    <div id="export" class="button">
+      Save
+    </div>
+    <div id="download-link-container"></div>
   </div>
   <div id="toolbar">
     <div id="box-tool" class="button">
@@ -54,5 +64,5 @@ let init = () => {
     </div>
   </div>
 </body>
-<html>
+</html>
 

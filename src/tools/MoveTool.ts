@@ -16,11 +16,16 @@ export default class MoveTool implements Tool {
     }
 
     hover(startCoords: Vec, endCoords: Vec): void {
+        if (startCoords === endCoords) {
+            return;
+        }
+
         if (this.startingOffset === null) {
             this.startingOffset = this.app.getOffset();
         }
         this.app.setOffset(
             this.startingOffset.add(endCoords.sub(startCoords)));
+        this.app.render();
     }
 
     select(_: Vec, __: Vec): void {

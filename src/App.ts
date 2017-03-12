@@ -7,8 +7,9 @@ import EraserTool from 'tools/EraserTool';
 import GameMap from 'GameMap';
 import { Hover } from 'Hover';
 import MoveTool from 'tools/MoveTool';
-import ShittyCircleResolver from 'resolvers/ShittyCircleResolver';
+import * as Porter from 'Porter';
 import Renderer from 'Renderer';
+import ShittyCircleResolver from 'resolvers/ShittyCircleResolver';
 import TerrainTool from 'tools/TerrainTool';
 import { RegionIndex } from 'Tile';
 import { Tool, ToolId } from 'tools/Tool';
@@ -18,12 +19,13 @@ import WallTool from 'tools/WallTool';
 
 export const init = (): App => {
   const container = document.getElementById("canvas-container");
+  const metabar = document.getElementById("metabar");
   const toolbar = document.getElementById("toolbar");
-  return new App(container, toolbar);
+  return new App(container, metabar, toolbar);
 }
 
 export default class App {
-  private mapHistory: Array<GameMap>;
+  private mapHistory: Array<[GameMap, string]>;
   private currentMap: number;
   private lastMap: number;
 
@@ -41,17 +43,17 @@ export default class App {
 
   private tileSize: number = 40;
 
-  constructor(container: HTMLElement, toolbar: HTMLElement) {
+  constructor(container: HTMLElement, metabar: HTMLElement, toolbar: HTMLElement) {
     this.container = container;
     this.mapCanvas = container.querySelector("#map-canvas") as HTMLCanvasElement;
     this.hoverCanvas = container.querySelector("#hover-canvas") as HTMLCanvasElement;
-    this.ui = new Ui(this, container, toolbar);
+    this.ui = new Ui(this, container, metabar, toolbar);
     this.renderer = new Renderer(this.mapCanvas, this.hoverCanvas, this.tileSize);
 
-    this.mapHistory = new Array<GameMap>();
+    this.mapHistory = new Array<[GameMap, string]>();
     this.currentMap = 0;
     this.lastMap = 0;
-    this.mapHistory[0] = new GameMap();
+    this.mapHistory[0] = [new GameMap(), 'Initialize map.'];
     
     this.tools = new Map();
     this.tools.set(ToolId.BOX_WALL, new WallTool(this, BoxResolver.getInstance()));
@@ -81,18 +83,22 @@ export default class App {
 
   /* Member actions */
   getMap(): GameMap {
-    return this.mapHistory[this.currentMap];
+    return this.mapHistory[this.currentMap][0];
   }
 
-  setMap(map: GameMap): void {
-    this.lastMap = ++this.currentMap;
-    this.mapHistory[this.currentMap] = map;
+  setMap(map: GameMap, change: string): void {
+    if (this.getMap() !== map) {
+      this.lastMap = ++this.currentMap;
+      this.mapHistory[this.currentMap] = [map, change];
+      this.ui.mapChange();
+    }
   }
 
   undo() {
     if (this.currentMap > 0) {
       this.currentMap--;
       this.render();
+      this.ui.mapChange();
     }
   }
 
@@ -100,7 +106,17 @@ export default class App {
     if (this.currentMap < this.lastMap) {
       this.currentMap++;
       this.render();
+      this.ui.mapChange();
     }
+  }
+
+  export(): string {
+    return new Porter.Exporter().export(this.getMap());
+  }
+
+  import(string: string) {
+    const map = new Porter.Importer().import(string);
+    this.setMap(map, 'Open map file.');
   }
 
   zoom(amount: number, loc: Vec) {
@@ -147,17 +163,14 @@ export default class App {
 
   cancel(): void {
     this.currentTool.cancel();
-    this.render();
   }
 
   hover(startCoords: Vec, endCoords: Vec): void {
     this.currentTool.hover(startCoords, endCoords);
-    this.render();
   }
 
   select(startCoords: Vec, endCoords: Vec): void {
     this.currentTool.select(startCoords, endCoords);
-    this.render();
   }
 
   /* Utility methods */
@@ -165,7 +178,7 @@ export default class App {
     return vec.sub(this.offset).mul(1 / this.tileSize);
   }
 
-  private render(): void {
-    this.renderer.render(this.mapHistory[this.currentMap], this.offset, this.hovered);
+  render(): void {
+    this.renderer.render(this.getMap(), this.offset, this.hovered);
   }
 }

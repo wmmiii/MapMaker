@@ -17,6 +17,7 @@ export default class WallTool implements Tool {
 
   cancel(): void {
     this.app.setHovered([]);
+    this.app.render();
   }
 
   hover(startCoords: Vec, endCoords: Vec): void {
@@ -27,6 +28,7 @@ export default class WallTool implements Tool {
         [regionIndex, Hover.ADD]);
 
     this.app.setHovered(hovered);
+    this.app.render();
   }
 
   select(startCoords: Vec, endCoords: Vec): void {
@@ -34,6 +36,7 @@ export default class WallTool implements Tool {
     const selected = this.resolver.resolve(
       this.app.toMapSpace(startCoords),
       this.app.toMapSpace(endCoords));
+    let message;
 
     if (selected.length === 1) {
       let tile = map.getTile(selected[0].tileIndex)
@@ -43,17 +46,21 @@ export default class WallTool implements Tool {
       if (region.isEdge()) {
         if (tile.getEdge(region) !== Edge.BARRIER) {
           tile = tile.setEdge(region, Edge.BARRIER);
+          message = 'Add 1 wall.';
         } else {
+          message = 'Remove 1 wall.';
           tile = tile.setEdge(region, Edge.NONE);
         }
       } else if (region.isFill()) {
         if (tile.getFill(region) !== Fill.BARRIER) {
           tile = tile.setFill(region, Fill.BARRIER);
+          message = 'Add 1 wall';
         } else {
           tile = tile.setFill(region, Fill.NONE);
+          message = 'Remove 1 wall.';
         }
       }
-      map = map.setTile(tile);
+      map = map.addTile(tile);
 
     } else {
       const modified = new Map<Tile.Index, Tile.Tile>();
@@ -71,11 +78,14 @@ export default class WallTool implements Tool {
       });
 
       modified.forEach((tile) => {
-        map = map.setTile(tile);
+        map = map.addTile(tile);
       });
+
+      message = 'Add walls to ' + selected.length + ' tiles.';
     }
 
-    this.app.setMap(map);
+    this.app.setMap(map, message);
     this.app.setHovered([]);
+    this.app.render();
   }
 }

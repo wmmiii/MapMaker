@@ -17,6 +17,7 @@ export default class EraserTool implements Tool {
 
   cancel(): void {
     this.app.setHovered([]);
+    this.app.render();
   }
 
   hover(startCoords: Vec, endCoords: Vec): void {
@@ -27,6 +28,7 @@ export default class EraserTool implements Tool {
         [regionIndex, Hover.REMOVE]);
 
     this.app.setHovered(hovered);
+    this.app.render();
   }
 
   select(startCoords: Vec, endCoords: Vec): void {
@@ -39,6 +41,7 @@ export default class EraserTool implements Tool {
     const right = Math.floor(Math.max(startCoords.x, endCoords.x));
     const bottom = Math.floor(Math.max(startCoords.y, endCoords.y));
 
+    let count = 0;
     for (let x = left; x <= right; x++) {
       for (let y = top; y <= bottom; y++) {
         const index = Tile.Index.of(x, y);
@@ -60,12 +63,17 @@ export default class EraserTool implements Tool {
           restoreEdges.forEach((edge, region) => {
             tile = tile.setEdge(region, edge);
           });
-          map = map.setTile(tile);
+          map = map.addTile(tile);
+        }
+
+        if (tile) {
+          count++;
         }
       }
     }
 
-    this.app.setMap(map);
+    this.app.setMap(map, 'Erased ' + count + ' tiles.');
     this.app.setHovered([]);
+    this.app.render();
   }
 }

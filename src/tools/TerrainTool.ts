@@ -19,6 +19,7 @@ export default class TerrainTool implements Tool {
 
   cancel(): void {
     this.app.setHovered([]);
+    this.app.render();
   }
 
   hover(startCoords: Vec, endCoords: Vec): void {
@@ -29,6 +30,7 @@ export default class TerrainTool implements Tool {
         [regionIndex, Hover.ADD]);
 
     this.app.setHovered(hovered);
+    this.app.render();
   }
 
   select(startCoords: Vec, endCoords: Vec): void {
@@ -36,6 +38,7 @@ export default class TerrainTool implements Tool {
     const selected = this.resolver.resolve(
       this.app.toMapSpace(startCoords),
       this.app.toMapSpace(endCoords));
+    let message;
 
     if (selected.length === 1) {
       let tile = map.getTile(selected[0].tileIndex)
@@ -45,21 +48,24 @@ export default class TerrainTool implements Tool {
       if (tile.getFill(region) === Fill.NONE
         && tile.getFill(Tile.Region.SQUARE) === Fill.NONE) {
         tile = tile.setFill(region, this.terrain);
+        message = 'Add terrain to 1 tile.';
       } else {
         tile = tile.setFill(region, Fill.NONE);
+        message = 'Remove terrain from 1 tile.';
       }
-      map = map.setTile(tile);
-
+      map = map.addTile(tile);
     } else {
       selected.forEach((regionIndex) => {
         const tile = map.getTile(regionIndex.tileIndex)
           || new Tile.Tile(regionIndex.tileIndex);
 
-        map = map.setTile(tile.setFill(regionIndex.tileRegion, this.terrain));
+        map = map.addTile(tile.setFill(regionIndex.tileRegion, this.terrain));
+        message = 'Add terrain to ' + selected.length + ' tiles.';
       });
     }
 
-    this.app.setMap(map);
+    this.app.setMap(map, message);
     this.app.setHovered([]);
+    this.app.render();
   }
 }

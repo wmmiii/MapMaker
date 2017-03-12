@@ -84,22 +84,36 @@ enum RegionType {
 }
 
 export class Region {
-  static readonly TOP_EDGE: Region = new Region(RegionType.EDGE);
-  static readonly LEFT_EDGE: Region = new Region(RegionType.EDGE);
-  static readonly NW_CROSS: Region = new Region(RegionType.EDGE);
-  static readonly NE_CROSS: Region = new Region(RegionType.EDGE);
+  static readonly TOP_EDGE = new Region('TOP_EDGE', RegionType.EDGE);
+  static readonly LEFT_EDGE = new Region('LEFT_EDGE', RegionType.EDGE);
+  static readonly NW_CROSS = new Region('NW_CROSS', RegionType.EDGE);
+  static readonly NE_CROSS = new Region('NE_CROSS', RegionType.EDGE);
 
-  static readonly SQUARE: Region = new Region(RegionType.FILL);
-  static readonly UPPER_LEFT: Region = new Region(RegionType.FILL);
-  static readonly UPPER_RIGHT: Region = new Region(RegionType.FILL);
-  static readonly LOWER_RIGHT: Region = new Region(RegionType.FILL);
-  static readonly LOWER_LEFT: Region = new Region(RegionType.FILL);
+  static readonly SQUARE = new Region('SQUARE', RegionType.FILL);
+  static readonly UPPER_LEFT = new Region('UPPER_LEFT', RegionType.FILL);
+  static readonly UPPER_RIGHT = new Region('UPPER_RIGHT', RegionType.FILL);
+  static readonly LOWER_RIGHT = new Region('LOWER_RIGHT', RegionType.FILL);
+  static readonly LOWER_LEFT = new Region('LOWER_LEFT', RegionType.FILL);
 
+  private static mapping: Map<string, Region>;
 
-  private type: RegionType;
+  private constructor(private name: string, private type: RegionType) {
+    if (!Region.mapping) {
+      Region.mapping = new Map();
+    }
+    Region.mapping.set(name, this);
+  }
 
-  private constructor(type: RegionType) {
-    this.type = type;
+  static forEach(action: (region: Region) => void) {
+    this.mapping.forEach(action);
+  }
+
+  static fromString(name: string) {
+    return Region.mapping.get(name);
+  }
+
+  getName(): string {
+    return this.name;
   }
 
   isFill(): boolean {

@@ -3,20 +3,18 @@ import { ToolId } from 'tools/Tool';
 import Vec from 'Vec';
 
 export default class Ui {
-  private app: App;
-  private container: HTMLElement;
   private overlay: HTMLElement;
-  private toolbar: HTMLElement;
 
   private isMouseDown: boolean = false;
   private mouseDown: Vec = null;
   private toolMapping: Map<ToolId, [string, string]>;
 
-  constructor(app: App, container: HTMLElement, toolbar: HTMLElement) {
-    this.app = app;
-    this.container = container;
+  constructor(private app: App,
+    private container: HTMLElement,
+    private metabar: HTMLElement,
+    private toolbar: HTMLElement) {
+      
     this.overlay = container.querySelector('.overlay') as HTMLElement;
-    this.toolbar = toolbar;
 
     this.toolMapping = new Map();
     this.toolMapping.set(ToolId.MOVE, ['move-tool', 'm']);
@@ -31,12 +29,12 @@ export default class Ui {
 
     this.bindMouseEvents();
     this.bindKeyEvents();
-    this.bindToolbar();
+    this.bindToolbars();
 
     this.overlay.focus();
   }
 
-  public setTool(tool: ToolId): void {
+  setTool(tool: ToolId): void {
     this.isMouseDown = false;
 
     if (tool === ToolId.MOVE) {
@@ -58,6 +56,10 @@ export default class Ui {
     });
   }
 
+  mapChange() {
+      this.metabar.querySelector('#download-link-container').innerHTML = null;
+  }
+
   private bindMouseEvents() {
     const overlay = this.overlay;
     overlay.onmousedown = (e: MouseEvent) => {
@@ -67,7 +69,9 @@ export default class Ui {
 
     overlay.onmouseup = (e: MouseEvent) => {
       if (this.isMouseDown) {
-        this.app.select(this.mouseDown, Vec.of(e.clientX, e.clientY));
+        const end = Vec.of(e.clientX, e.clientY);
+        this.app.select(this.mouseDown, end);
+        this.app.hover(end, end);
       }
       this.isMouseDown = false;
     };
@@ -124,7 +128,39 @@ export default class Ui {
     }
   }
 
-  private bindToolbar() {
+  private bindToolbars() {
+    const saveButton = this.metabar.querySelector('#export') as HTMLElement;
+    saveButton.onclick = () => {
+      const name = prompt("What should the filename be?", "map");
+      const exported: string = this.app.export();
+      const link: HTMLAnchorElement = document.createElement('a');
+      link.download = name + '.mm';
+      link.href = 'data:application/octet-stream;base64,' + btoa(exported);
+      link.innerText = "Download";
+      const linkContainer = this.metabar.querySelector('#download-link-container');
+      linkContainer.innerHTML = '';
+      linkContainer.appendChild(link);
+    };
+
+    const openButton = this.metabar.querySelector('#import') as HTMLElement;
+    openButton.onclick = () => {
+      const app = this.app;
+      const input: HTMLInputElement = document.createElement('input');
+      input.type = 'file';
+      input.addEventListener('change', function(_: Event) {
+        var file = this.files[0];
+        if (!file) {
+          return;
+        }
+        var reader = new FileReader();
+        reader.addEventListener('load', function(_: Event) {
+          app.import(this.result);
+        });
+        reader.readAsText(file);
+      });
+      input.click();
+    };
+
     this.toolMapping.forEach(([id, _], tool) => {
       if (id === '') {
         return;

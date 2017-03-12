@@ -17,6 +17,7 @@ export default class DoorTool implements Tool {
 
   cancel(): void {
     this.app.setHovered([]);
+    this.app.render();
   }
 
   hover(startCoords: Vec, endCoords: Vec): void {
@@ -27,6 +28,7 @@ export default class DoorTool implements Tool {
         [regionIndex, Hover.ADD]);
 
     this.app.setHovered(hovered);
+    this.app.render();
   }
 
   select(startCoords: Vec, endCoords: Vec): void {
@@ -36,21 +38,26 @@ export default class DoorTool implements Tool {
       this.app.toMapSpace(endCoords));
 
     if (selected.length === 1) {
+      let message;
       let tile = map.getTile(selected[0].tileIndex)
         || new Tile.Tile(selected[0].tileIndex);
 
       const region = selected[0].tileRegion;
       if (tile.getEdge(region) === Edge.DOOR) {
         tile = tile.setEdge(region, Edge.DOOR_LOCKED);
+        message = 'Add locked door.';
       } else if (tile.getEdge(region) === Edge.DOOR_LOCKED) {
         tile = tile.setEdge(region, Edge.NONE);
+        message = 'Remove door.';
       } else {
         tile = tile.setEdge(region, Edge.DOOR);
+        message = 'Add door.';
       }
-      map = map.setTile(tile);
+      map = map.addTile(tile);
+      this.app.setMap(map, message);
     }
 
-    this.app.setMap(map);
     this.app.setHovered([]);
+    this.app.render();
   }
 }

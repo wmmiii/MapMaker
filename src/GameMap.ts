@@ -14,7 +14,7 @@ export default class GameMap {
     this.tileMap.forEach(func);
   }
 
-  setTile(tile: Tile): GameMap {
+  addTile(tile: Tile): GameMap {
     return new GameMap(this.tileMap.set(tile.index, tile));
   }
 
