@@ -147,6 +147,7 @@ export default class Ui {
       const app = this.app;
       const input: HTMLInputElement = document.createElement('input');
       input.type = 'file';
+      input.accept = '.mm';
       input.addEventListener('change', function(_: Event) {
         var file = this.files[0];
         if (!file) {
