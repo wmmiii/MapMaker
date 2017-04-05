@@ -1,3 +1,8 @@
+/**
+ * Essentially an enum of all the edge regions in a tile.
+ * 
+ * Note: This class was modeled after Java's Enum.
+ */
 export class Edge {
   static readonly NONE = new Edge('NONE');
   static readonly BARRIER = new Edge('BARRIER');
@@ -13,19 +18,37 @@ export class Edge {
     Edge.mapping.set(name, this);
   }
 
-  static forEach(action: (edge: Edge) => void) {
-    this.mapping.forEach(action);
+  /**
+   * Performs the specified function on each Edge.
+   * 
+   * @param func The function to perform on each Edge.
+   */
+  static forEach(func: (edge: Edge) => void) {
+    this.mapping.forEach(func);
   }
 
+  /**
+   * Returns the Edge with the specified name.
+   * 
+   * @param name The name of the Edge.
+   */
   static fromString(name: string) {
     return Edge.mapping.get(name);
   }
 
+  /**
+   * Returns the name of this Edge.
+   */
   getName(): string {
     return this.name;
   }
 }
 
+/**
+ * Essentially an enum of all the fill regions in a tile.
+ * 
+ * Note: This class was modeled after Java's Enum.
+ */
 export class Fill {
   static readonly NONE = new Fill('NONE');
   static readonly BARRIER = new Fill('BARRIER');
@@ -41,14 +64,27 @@ export class Fill {
     Fill.mapping.set(name, this);
   }
 
+  /**
+   * Performs the specified function on each Fill.
+   * 
+   * @param func The function to perform on each Fill.
+   */
   static forEach(action: (fill: Fill) => void) {
     this.mapping.forEach(action);
   }
 
+  /**
+   * Returns the Fill with the specified name.
+   * 
+   * @param name The name of the Fill.
+   */
   static fromString(name: string) {
     return Fill.mapping.get(name);
   }
 
+  /**
+   * Returns the name of this Fill.
+   */
   getName(): string {
     return this.name;
   }

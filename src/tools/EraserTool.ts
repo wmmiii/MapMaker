@@ -6,6 +6,11 @@ import { Tool } from 'Tool';
 import * as Tile from 'Tile';
 import Vec from 'Vec';
 
+/**
+ * Removes all edges and fills within tiles touched by the selection boundary.
+ * Note that vertical and horizontal edges bordering the tiles touched by the
+ * selection boundary will not be removed.
+ */
 export default class EraserTool implements Tool {
   private app: App;
   private resolver: SquareResolver;
@@ -17,7 +22,6 @@ export default class EraserTool implements Tool {
 
   cancel(): void {
     this.app.setHovered([]);
-    this.app.render();
   }
 
   hover(startCoords: Vec, endCoords: Vec): void {
@@ -28,7 +32,6 @@ export default class EraserTool implements Tool {
         [regionIndex, Hover.REMOVE]);
 
     this.app.setHovered(hovered);
-    this.app.render();
   }
 
   select(startCoords: Vec, endCoords: Vec): void {
@@ -74,6 +77,5 @@ export default class EraserTool implements Tool {
 
     this.app.setMap(map, 'Erased ' + count + ' tiles.');
     this.app.setHovered([]);
-    this.app.render();
   }
 }

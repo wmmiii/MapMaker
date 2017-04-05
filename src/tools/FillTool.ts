@@ -6,7 +6,12 @@ import { Tool } from 'Tool';
 import * as Tile from 'Tile';
 import Vec from 'Vec';
 
-export default class TerrainTool implements Tool {
+/**
+ * Marks selected fill regions as a specific type of Fill. This tool's behavior
+ * should not be mistaken with the behavior of "paint-bucket" tools offered by
+ * other graphical applications.
+ */
+export default class FillTool implements Tool {
   private app: App;
   private terrain: Fill;
   private resolver: FillResolver;
@@ -19,7 +24,6 @@ export default class TerrainTool implements Tool {
 
   cancel(): void {
     this.app.setHovered([]);
-    this.app.render();
   }
 
   hover(startCoords: Vec, endCoords: Vec): void {
@@ -30,7 +34,6 @@ export default class TerrainTool implements Tool {
         [regionIndex, Hover.ADD]);
 
     this.app.setHovered(hovered);
-    this.app.render();
   }
 
   select(startCoords: Vec, endCoords: Vec): void {
@@ -66,6 +69,5 @@ export default class TerrainTool implements Tool {
 
     this.app.setMap(map, message);
     this.app.setHovered([]);
-    this.app.render();
   }
 }

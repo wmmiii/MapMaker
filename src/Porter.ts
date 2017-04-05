@@ -5,8 +5,16 @@ import { Tile, Index, Region } from 'Tile';
 const EDGE_KEY = 'e';
 const FILL_KEY = 'f';
 
+/**
+ * Serializes a GameMap into a string.
+ */
 export class Exporter {
 
+  /**
+   * Returns a string of the serialized state of map.
+   * 
+   * @param map The GameMap to serialize.
+   */
   export(map: GameMap): string {
     const tiles: Map<number, [{}, Set<Index>]> = new Map();
 
@@ -68,9 +76,18 @@ export class Exporter {
   }
 }
 
+/**
+ * Deserializes a GameMap from a string.
+ */
 export class Importer {
-  import(string: string): GameMap {
-    const mapJson = JSON.parse(string);
+  
+  /**
+   * Returns a GameMap from a string describing serialized state.
+   * 
+   * @param serializedMap A string describing the state of a GameMap.
+   */
+  import(serializedMap: string): GameMap {
+    const mapJson = JSON.parse(serializedMap);
     const tiles: [{ [key: string]: { [key: string]: string} }, number[][]][]
         = mapJson['tiles'];
 

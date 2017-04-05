@@ -1,6 +1,9 @@
 ///<reference path='../lib/immutable-js/dist/immutable.d.ts'/>
 import { Edge, Fill } from 'RegionTypes';
 
+/**
+ * A state of a tile. Instances of Tile are immutable.
+ */
 export class Tile {
   constructor(readonly index: Index,
     private edgeRegions?: Immutable.Map<Region, Edge>,
@@ -9,16 +12,27 @@ export class Tile {
     this.fillRegions = fillRegions || Immutable.Map<Region, Fill>();
   }
 
+  /**
+   * Returns true if this tile contains no state and may be removed.
+   */
   noState(): boolean {
     const hasEdge = this.edgeRegions.some(edge => edge !== Edge.NONE);
     const hasFill = this.fillRegions.some(fill => fill !== Fill.NONE);
     return !(hasEdge || hasFill);
   }
 
+  /**
+   * Returns a map of the edge regions mapped to their state.
+   */
   getEdges(): Immutable.Map<Region, Edge> {
     return this.edgeRegions;
   }
 
+  /**
+   * Returns the state of a specifc edge region.
+   * 
+   * @param region The edge region to retrieve the state for.
+   */
   getEdge(region: Region): Edge {
     if (!region.isEdge()) {
       throw new TypeError("Tried to get edge style of non-edge region.");
@@ -26,6 +40,13 @@ export class Tile {
     return this.edgeRegions.get(region) || Edge.NONE;
   }
 
+  /**
+   * Returns an identicle tile except the specified region will be set to the
+   * specified state.
+   * 
+   * @param region The edge region to set the state of.
+   * @param edge The edge state to set the region to.
+   */
   setEdge(region: Region, edge: Edge): Tile {
     if (!region.isEdge()) {
       throw new TypeError("Tried to set edge style of non-edge region.");
@@ -35,10 +56,18 @@ export class Tile {
       this.fillRegions);
   }
 
+  /**
+   * Returns a map of the fill regions mapped to their state.
+   */
   getFills(): Immutable.Map<Region, Fill> {
     return this.fillRegions;
   }
 
+  /**
+   * Returns the state of a specifc fill region.
+   * 
+   * @param region The fill region to retrieve the state for.
+   */
   getFill(region: Region): Fill {
     if (!region.isFill()) {
       throw new TypeError("Tried to get fill style of non-fill region.");
@@ -46,6 +75,13 @@ export class Tile {
     return this.fillRegions.get(region) || Fill.NONE;
   }
 
+  /**
+   * Returns an identicle tile except the specified region will be set to the
+   * specified state.
+   * 
+   * @param region The fill region to set the state of.
+   * @param fill The fill state to set the region to.
+   */
   setFill(region: Region, fill: Fill): Tile {
     if (!region.isFill()) {
       throw new TypeError("Tried to set fill style of non-fill region.");
@@ -56,11 +92,21 @@ export class Tile {
   }
 }
 
+/**
+ * The identifier for a single tile. Only one of each identifier may exist in
+ * the application at a time so one may use identity comparison.
+ */
 export class Index {
   private static indicies: any = {};
   readonly x: number;
   readonly y: number;
 
+  /**
+   * Returns the identifier of the tile at position [x, y].
+   * 
+   * @param x The x index of the tile.
+   * @param y The y index of the tile.
+   */
   static of(x: number, y: number) {
     if (Index.indicies[x] == null) {
       Index.indicies[x] = {};
@@ -83,6 +129,11 @@ enum RegionType {
   FILL
 }
 
+/**
+ * The different regions in a tile.
+ * 
+ * Note: This class was modeled after Java's Enum.
+ */
 export class Region {
   static readonly TOP_EDGE = new Region('TOP_EDGE', RegionType.EDGE);
   static readonly LEFT_EDGE = new Region('LEFT_EDGE', RegionType.EDGE);
@@ -104,31 +155,59 @@ export class Region {
     Region.mapping.set(name, this);
   }
 
-  static forEach(action: (region: Region) => void) {
-    this.mapping.forEach(action);
+  /**
+   * Performs the specified function on each Region.
+   * 
+   * @param func The function to perform on each Region.
+   */
+  static forEach(func: (region: Region) => void) {
+    this.mapping.forEach(func);
   }
 
+  /**
+   * Returns the Region with the specified name.
+   * 
+   * @param name The name of the Region.
+   */
   static fromString(name: string) {
     return Region.mapping.get(name);
   }
 
+  /**
+   * Returns the name of this Region.
+   */
   getName(): string {
     return this.name;
   }
 
-  isFill(): boolean {
-    return this.type === RegionType.FILL;
-  }
-
+  /**
+   * If this region is a EDGE region.
+   */
   isEdge(): boolean {
     return this.type === RegionType.EDGE;
   }
+
+  /**
+   * If this region is a FUKK region.
+   */
+  isFill(): boolean {
+    return this.type === RegionType.FILL;
+  }
 }
 
+/**
+ * The identifier for a region in a specific tile.
+ */
 export class RegionIndex {
   readonly tileIndex: Index;
   readonly tileRegion: Region;
 
+  /**
+   * Creates a new RegionIndex object.
+   * 
+   * @param tileIndex The identifier of the tile which contains the region.
+   * @param regionType The type of the region.
+   */
   constructor(tileIndex: Index, regionType: Region) {
     this.tileIndex = tileIndex;
     this.tileRegion = regionType;

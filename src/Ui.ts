@@ -2,6 +2,9 @@ import App from 'App';
 import { ToolId } from 'tools/Tool';
 import Vec from 'Vec';
 
+/**
+ * The Ui wires up DOM elements and processes events.
+ */
 export default class Ui {
   private overlay: HTMLElement;
 
@@ -9,6 +12,18 @@ export default class Ui {
   private mouseDown: Vec = null;
   private toolMapping: Map<ToolId, [string, string]>;
 
+  /**
+   * Creates a new Ui object which registers listeners and may render DOM 
+   * elements.
+   * 
+   * @param app The App to notify when user input is recieved.
+   * @param container The root HTMLElement upon which mouse and key listeners
+   *                  will be registered to pass directly through to the App.
+   * @param metabar The root HTMLElement of the toolbar containing meta
+   *                actions.
+   * @param toolbar The root HTMLElement of the toolbar containing the tool
+   *                buttons.
+   */
   constructor(private app: App,
     private container: HTMLElement,
     private metabar: HTMLElement,
@@ -34,6 +49,11 @@ export default class Ui {
     this.overlay.focus();
   }
 
+  /**
+   * Sets the currently active tool using the ToolId specified.
+   * 
+   * @param tool The identifier of the tool to activate.
+   */
   setTool(tool: ToolId): void {
     this.isMouseDown = false;
 
@@ -56,7 +76,11 @@ export default class Ui {
     });
   }
 
-  mapChange() {
+  /**
+   * Action to be called when the internal map state changes. This will remove
+   * options that are only applicable to a specific map state.
+   */
+  onMapChange() {
       this.metabar.querySelector('#download-link-container').innerHTML = null;
   }
 

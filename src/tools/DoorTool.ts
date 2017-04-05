@@ -6,6 +6,12 @@ import { Tool } from 'Tool';
 import * as Tile from 'Tile';
 import Vec from 'Vec';
 
+/**
+ * Selects a single edge region and marks it as a door. The first time an edge
+ * is selected it is marked as a regular door, the second time an edge is
+ * selected it is marked as a locked door, and the third time an edge is
+ * selected it is removed and so on.
+ */
 export default class DoorTool implements Tool {
   private app: App;
   private resolver: EdgeResolver;
@@ -17,7 +23,6 @@ export default class DoorTool implements Tool {
 
   cancel(): void {
     this.app.setHovered([]);
-    this.app.render();
   }
 
   hover(startCoords: Vec, endCoords: Vec): void {
@@ -28,7 +33,6 @@ export default class DoorTool implements Tool {
         [regionIndex, Hover.ADD]);
 
     this.app.setHovered(hovered);
-    this.app.render();
   }
 
   select(startCoords: Vec, endCoords: Vec): void {
@@ -58,6 +62,5 @@ export default class DoorTool implements Tool {
     }
 
     this.app.setHovered([]);
-    this.app.render();
   }
 }

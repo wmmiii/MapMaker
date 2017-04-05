@@ -1,5 +1,8 @@
 import { Style } from 'Style';
 
+/**
+ * A Style reminiscent of a Chessex battle-mat.
+ */
 export default class BattleMat implements Style {
   private static instance: BattleMat;
 
@@ -45,15 +48,15 @@ export default class BattleMat implements Style {
     return 2;
   }
 
-  hoverAdd(): string {
+  highlightAdd(): string {
     return "#25BCDB";
   }
 
-  hoverRemove(): string {
+  highlightRemove(): string {
     return "#DB4425";
   }
 
-  barrierLine(): string {
+  barrierEdge(): string {
     return "#3a332a";
   }
 

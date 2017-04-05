@@ -1,8 +1,10 @@
+import BarrierTool from 'tools/BarrierTool';
 import BoxResolver from 'resolvers/BoxResolver';
 import CircleResolver from 'resolvers/CircleResolver';
 import DiagResolver from 'resolvers/DiagResolver';
 import DoorTool from 'tools/DoorTool';
 import { Fill } from 'RegionTypes';
+import FillTool from 'tools/FillTool';
 import EraserTool from 'tools/EraserTool';
 import GameMap from 'GameMap';
 import { Hover } from 'Hover';
@@ -10,13 +12,15 @@ import MoveTool from 'tools/MoveTool';
 import * as Porter from 'Porter';
 import Renderer from 'Renderer';
 import ShittyCircleResolver from 'resolvers/ShittyCircleResolver';
-import TerrainTool from 'tools/TerrainTool';
 import { RegionIndex } from 'Tile';
 import { Tool, ToolId } from 'tools/Tool';
 import Ui from 'Ui';
 import Vec from 'Vec';
-import WallTool from 'tools/WallTool';
 
+/**
+ * The bootstrapper of the Map Maker application which wires up DOM elements
+ * and creates the App.
+ */
 export const init = (): App => {
   const container = document.getElementById("canvas-container");
   const metabar = document.getElementById("metabar");
@@ -24,6 +28,10 @@ export const init = (): App => {
   return new App(container, metabar, toolbar);
 }
 
+/**
+ * The main class of the Map Maker application. It exposes methods to retrieve
+ * internal state and to use tools which may be used to modify internal state.
+ */
 export default class App {
   private mapHistory: Array<[GameMap, string]>;
   private currentMap: number;
@@ -56,14 +64,14 @@ export default class App {
     this.mapHistory[0] = [new GameMap(), 'Initialize map.'];
     
     this.tools = new Map();
-    this.tools.set(ToolId.BOX_WALL, new WallTool(this, BoxResolver.getInstance()));
-    this.tools.set(ToolId.CIRCLE_WALL, new WallTool(this, CircleResolver.getInstance()));
-    this.tools.set(ToolId.DIAG_WALL, new WallTool(this, DiagResolver.getInstance()));
+    this.tools.set(ToolId.BOX_WALL, new BarrierTool(this, BoxResolver.getInstance()));
+    this.tools.set(ToolId.CIRCLE_WALL, new BarrierTool(this, CircleResolver.getInstance()));
+    this.tools.set(ToolId.DIAG_WALL, new BarrierTool(this, DiagResolver.getInstance()));
     this.tools.set(ToolId.DOOR, new DoorTool(this));
-    this.tools.set(ToolId.TERRAIN_DIFFICULT, new TerrainTool(this, Fill.TERRAIN_DIFFICULT));
-    this.tools.set(ToolId.TERRAIN_WATER, new TerrainTool(this, Fill.TERRAIN_WATER));
+    this.tools.set(ToolId.TERRAIN_DIFFICULT, new FillTool(this, Fill.TERRAIN_DIFFICULT));
+    this.tools.set(ToolId.TERRAIN_WATER, new FillTool(this, Fill.TERRAIN_WATER));
     this.tools.set(ToolId.ERASER, new EraserTool(this));
-    this.tools.set(ToolId.SHITTY_CIRCLE, new WallTool(this, ShittyCircleResolver.getInstance()));
+    this.tools.set(ToolId.SHITTY_CIRCLE, new BarrierTool(this, ShittyCircleResolver.getInstance()));
     this.tools.set(ToolId.MOVE, new MoveTool(this));
     this.setCurrentTool(ToolId.BOX_WALL);
 
@@ -81,44 +89,79 @@ export default class App {
     resizeCanvas();
   }
 
-  /* Member actions */
+  /**
+   * Returns the current GameMap.
+   */
   getMap(): GameMap {
     return this.mapHistory[this.currentMap][0];
   }
 
+  /**
+   * Sets the current GameMap. If the map is unchanged the undo/redo stack
+   * will not be effected.
+   * 
+   * @param map The current state of the map to store.
+   * @param change A human-readable description of the change which prompted
+   *               the update.
+   */
   setMap(map: GameMap, change: string): void {
     if (this.getMap() !== map) {
       this.lastMap = ++this.currentMap;
       this.mapHistory[this.currentMap] = [map, change];
-      this.ui.mapChange();
+      this.ui.onMapChange();
+      this.render();
     }
   }
 
+  /**
+   * Reverts the current GameMap to a state before the last effective
+   * setMap(...) call if such a state exists.
+   */
   undo() {
     if (this.currentMap > 0) {
       this.currentMap--;
       this.render();
-      this.ui.mapChange();
+      this.ui.onMapChange();
     }
   }
 
+  /**
+   * Sets the current GameMap the earliest reverted state if such a state
+   * exists and no modifications to previous states have occured. If this
+   * call is successful the state is no longer considered reverted.
+   */
   redo() {
     if (this.currentMap < this.lastMap) {
       this.currentMap++;
       this.render();
-      this.ui.mapChange();
+      this.ui.onMapChange();
     }
   }
 
+  /**
+   * Returns a serialized version of the current GameMap.
+   */
   export(): string {
     return new Porter.Exporter().export(this.getMap());
   }
 
-  import(string: string) {
-    const map = new Porter.Importer().import(string);
+  /**
+   * Sets the current GameMap to the state described by the serializedMap
+   * string.
+   * 
+   * @param serializedMap The serialized state of new current GameMap.
+   */
+  import(serializedMap: string) {
+    const map = new Porter.Importer().import(serializedMap);
     this.setMap(map, 'Open map file.');
   }
 
+  /**
+   * increases or reduces the size of rendered entities in canvas-space.
+   * 
+   * @param amount How many pixels to add to the width and height of the tiles.
+   * @param loc The center of the zoom action in canvas-space.
+   */
   zoom(amount: number, loc: Vec) {
     const oldSIze = this.tileSize;
     this.setTileSize(this.tileSize + amount);
@@ -128,18 +171,35 @@ export default class App {
     }
   }
 
+  /**
+   * Returns the current offset of the viewport in canvas-space.
+   */
   getOffset(): Vec {
     return this.offset;
   }
 
+  /**
+   * Sets the current offset of the viewport in canvas-space.
+   * 
+   * @param offset The offset of the viewport.
+   */
   setOffset(offset: Vec): void {
     this.offset = offset;
+    this.render();
   }
 
+  /**
+   * Returns the current width and height of the tiles in canvas-space.
+   */
   getTileSize(): number {
     return this.tileSize;
   }
 
+  /**
+   * Sets the current width and height of the tiles in canvas-space.
+   * 
+   * @param pixels The width and height of the tiles.
+   */
   setTileSize(pixels: number) {
     if (pixels > 80) {
       pixels = 80;
@@ -151,34 +211,71 @@ export default class App {
     this.render();
   }
 
+  /**
+   * Sets the RegionIndexes which are marked for modification and how they will
+   * be modified.
+   * 
+   * @param hovered The RegionIndexes to be modified and how they will be
+   *                modified.
+   */
   setHovered(hovered: [RegionIndex, Hover][]): void {
     this.hovered = hovered;
+    this.render();
   }
 
-  /* Tool methods */
+  /**
+   * Deactivates the current tool and activates the tool with the id toolId.
+   * 
+   * @param toolId The identifier of the tool to activate.
+   */
   setCurrentTool(toolId: ToolId): void {
     this.currentTool = this.tools.get(toolId);
     this.ui.setTool(toolId);
   }
 
+  /**
+   * Cancels the current action.
+   */
   cancel(): void {
     this.currentTool.cancel();
   }
 
+  /**
+   * Specifies that the user is considering an action that starts at
+   * startCoords and ends at endCoords using the currently active tool.
+   * 
+   * @param startCoords The starting coordinates in canvas-space of the
+   *                    considered action.
+   * @param endCoords The ending coordinates in canvas-space of the
+   *                  considered action.
+   */
   hover(startCoords: Vec, endCoords: Vec): void {
     this.currentTool.hover(startCoords, endCoords);
   }
 
+  /**
+   * Specifies that the user wishes to perform an action that starts at
+   * startCoords and ends at endCoords using the currently active tool.
+   * 
+   * @param startCoords The starting coordinates in canvas-space of the
+   *                    considered action.
+   * @param endCoords The ending coordinates in canvas-space of the
+   *                  considered action.
+   */
   select(startCoords: Vec, endCoords: Vec): void {
     this.currentTool.select(startCoords, endCoords);
   }
 
-  /* Utility methods */
+  /**
+   * Transforms a coordinate in canvas-space to a coordinate in map-space.
+   * 
+   * @param vec The coordinate in canvas-space.
+   */
   toMapSpace(vec: Vec) {
     return vec.sub(this.offset).mul(1 / this.tileSize);
   }
 
-  render(): void {
+  private render(): void {
     this.renderer.render(this.getMap(), this.offset, this.hovered);
   }
 }

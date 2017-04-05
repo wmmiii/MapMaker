@@ -2,9 +2,18 @@ import RegionResolver from 'RegionResolver';
 import { Region, RegionIndex } from 'Tile';
 import Vec from 'Vec';
 
+/**
+ * Resolves a selection to a set of specific edge regions describing a circle
+ * whose origin lies roughly at the starting coordinate and whose radius is the
+ * euclidian distance between the starting coordinate and the ending
+ * coordinate. The origin is rounded to the nearest half-tile.
+ */
 export default class CircleResolver extends RegionResolver {
   private static instance: CircleResolver;
 
+  /**
+   * Returns the singleton instance of the CircleResolver.
+   */
   static getInstance(): CircleResolver {
     if (!CircleResolver.instance) {
       CircleResolver.instance = new CircleResolver();

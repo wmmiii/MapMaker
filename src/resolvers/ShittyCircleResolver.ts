@@ -2,9 +2,18 @@ import RegionResolver from 'RegionResolver';
 import { Region, RegionIndex } from 'Tile';
 import Vec from 'Vec';
 
+/**
+ * Resolves a selection to a interesting set of edge Regions. This resolver
+ * came about while developing the CircleResolver and has remained in the code
+ * because Dan appricates what he calls the "space cube" effect. Do not use
+ * this resolver for any serious big-boy work.
+ */
 export default class ShittyCircleResolver extends RegionResolver {
   private static instance: ShittyCircleResolver;
 
+  /**
+   * Returns the singleton instance of the ShittyCircleResolver.
+   */
   static getInstance(): ShittyCircleResolver {
     if (!ShittyCircleResolver.instance) {
       ShittyCircleResolver.instance = new ShittyCircleResolver();

@@ -2,10 +2,19 @@ import RegionResolver from 'RegionResolver';
 import { Region, RegionIndex } from 'Tile';
 import Vec from 'Vec';
 
+/**
+ * Resolves a selection to one or more of the edge regions. Only one type of
+ * Region will be referred to in a returned set. The type of region returned
+ * depends on the proximity of the starting coordinate to each of the regions
+ * on any tile.
+ */
 export default class EdgeResolver extends RegionResolver {
   private static instance: EdgeResolver;
   private static readonly edgeDist: number = 0.3;
 
+  /**
+   * Returns the singleton instance of the EdgeResolver.
+   */
   static getInstance(): EdgeResolver {
     if (!EdgeResolver.instance) {
       EdgeResolver.instance = new EdgeResolver();

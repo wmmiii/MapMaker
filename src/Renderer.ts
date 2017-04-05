@@ -9,6 +9,10 @@ import {
 } from 'Tile';
 import Vec from 'Vec';
 
+/**
+ * The Renderer renders the GameMap and other states described by App to the 
+ * provided HTML5 canvases.
+ */
 export default class Renderer {
   private tileSize: number = 40;
   private mapCanvas: HTMLCanvasElement;
@@ -18,6 +22,13 @@ export default class Renderer {
   private offset: Vec;
   private style: Style;
 
+  /**
+   * Creates a new Renderer object.
+   * 
+   * @param mainCanvas The canvas to draw the map to.
+   * @param hoverCanvas The canvas to draw hover states to.
+   * @param tileSize The initial size of the map tiles in pixels.
+   */
   constructor(mainCanvas: HTMLCanvasElement, hoverCanvas: HTMLCanvasElement, tileSize: number) {
     this.mapCanvas = mainCanvas;
     this.mapCtx = mainCanvas.getContext("2d");
@@ -30,7 +41,15 @@ export default class Renderer {
     this.style = BattleMat.getInstatnce();
   }
 
-  public render(map: GameMap, offset: Vec, hovered: [RegionIndex, Hover][]) {
+  /**
+   * Renders the current state of the application to the canvases.
+   * 
+   * @param map The GameMap to render.
+   * @param offset The offset in pixels of the viewport in canvas-space.
+   * @param hovered The RegionIndexes which are being considered for
+   *                modification and how they will be modified.
+   */
+  render(map: GameMap, offset: Vec, hovered: [RegionIndex, Hover][]) {
     this.offset = offset;
     this.clear();
     this.drawMap(map);
@@ -40,7 +59,12 @@ export default class Renderer {
     }
   }
 
-  public setTileSize(pixels: number) {
+  /**
+   * Sets the width and height of the tiles in pixels to draw in canvas-space.
+   * 
+   * @param pixels The width and height of the tiles.
+   */
+  setTileSize(pixels: number) {
     this.tileSize = pixels;
   }
 
@@ -91,7 +115,7 @@ export default class Renderer {
       tile.getFills().forEach((fill: Fill, region: Region) => {
         const regionIndex = new RegionIndex(tile.index, region);
         if (fill === Fill.BARRIER) {
-          ctx.strokeStyle = this.style.barrierLine();
+          ctx.strokeStyle = this.style.barrierEdge();
           ctx.fillStyle = this.style.barrierFill();
           this.drawRegion(ctx, regionIndex, true);
         } else if (fill === Fill.TERRAIN_DIFFICULT) {
@@ -108,7 +132,7 @@ export default class Renderer {
       tile.getEdges().forEach((edge: Edge, region: Region) => {
         const regionIndex = new RegionIndex(tile.index, region);
         if (edge === Edge.BARRIER) {
-          ctx.strokeStyle = this.style.barrierLine();
+          ctx.strokeStyle = this.style.barrierEdge();
           ctx.fillStyle = this.style.barrierFill();
           this.drawRegion(ctx, regionIndex, true);
         } else if (edge === Edge.DOOR) {
@@ -132,11 +156,11 @@ export default class Renderer {
 
     hovered.forEach(([regionIndex, hover]) => {
       if (hover === Hover.ADD) {
-        ctx.fillStyle = this.style.hoverAdd();
-        ctx.strokeStyle = this.style.hoverAdd();
+        ctx.fillStyle = this.style.highlightAdd();
+        ctx.strokeStyle = this.style.highlightAdd();
       } else if (hover === Hover.REMOVE) {
-        ctx.fillStyle = this.style.hoverRemove();
-        ctx.strokeStyle = this.style.hoverRemove();
+        ctx.fillStyle = this.style.highlightRemove();
+        ctx.strokeStyle = this.style.highlightRemove();
       } else {
         throw new Error();
       }
@@ -176,7 +200,7 @@ export default class Renderer {
     ctx.save();
     ctx.translate(regionIndex.tileIndex.x * tileSize, regionIndex.tileIndex.y * tileSize);
     ctx.fillStyle = this.style.bgFill();
-    ctx.strokeStyle = this.style.barrierLine();
+    ctx.strokeStyle = this.style.barrierEdge();
     ctx.lineWidth = lineWidth / 2;
 
     switch (regionIndex.tileRegion) {
@@ -228,7 +252,7 @@ export default class Renderer {
     const lineWidth = this.style.lineWidth();
 
     ctx.fillStyle = this.style.bgFill();
-    ctx.strokeStyle = this.style.barrierLine();
+    ctx.strokeStyle = this.style.barrierEdge();
     ctx.lineWidth = lineWidth / 2;
 
     ctx.beginPath();
@@ -236,7 +260,7 @@ export default class Renderer {
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = this.style.barrierLine();
+    ctx.fillStyle = this.style.barrierEdge();
 
     ctx.beginPath();
     ctx.arc(0, -lineWidth, lineWidth * 1.5, 0, 2 * Math.PI);

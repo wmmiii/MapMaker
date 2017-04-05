@@ -2,6 +2,9 @@ import App from 'App';
 import { Tool } from 'Tool';
 import Vec from 'Vec';
 
+/**
+ * Moves the map relative to the viewport.
+ */
 export default class MoveTool implements Tool {
     private app: App;
     private startingOffset: Vec;
@@ -25,7 +28,6 @@ export default class MoveTool implements Tool {
         }
         this.app.setOffset(
             this.startingOffset.add(endCoords.sub(startCoords)));
-        this.app.render();
     }
 
     select(_: Vec, __: Vec): void {

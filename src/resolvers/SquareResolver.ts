@@ -2,9 +2,15 @@ import RegionResolver from 'RegionResolver';
 import { Region, RegionIndex } from 'Tile';
 import Vec from 'Vec';
 
+/**
+ * Resolves a selection to the SQUARE regions which overlap the selecting box.
+ */
 export default class SquareResolver extends RegionResolver {
   private static instance: SquareResolver;
 
+  /**
+   * Returns the singleton instance of the SquareResolver.
+   */
   static getInstance(): SquareResolver {
     if (!SquareResolver.instance) {
       SquareResolver.instance = new SquareResolver();

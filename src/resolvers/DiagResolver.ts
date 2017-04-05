@@ -2,10 +2,21 @@ import RegionResolver from 'RegionResolver';
 import { Region, RegionIndex } from 'Tile';
 import Vec from 'Vec';
 
+/**
+ * Resolves a selection to a set of NW_CROSSes or NE_CROSSes if the selection
+ * starts near the center of a tile or a single UPPER_LEFT, UPPER_RIGHT,
+ * LOWER_RIGHT, or LOWER_LEFT region if the selection starts near the outside
+ * of a tile. If the starting coordinate resolves to one of the fill regions
+ * within a different tile than what the ending coordinate would resolve to
+ * then an empty set is returned.
+ */
 export default class DiagResolver extends RegionResolver {
   private static instance: DiagResolver;
   private static readonly cornerDist: number = 0.6;
 
+  /**
+   * Returns the singleton instance of the DiagResolver.
+   */
   static getInstance(): DiagResolver {
     if (!DiagResolver.instance) {
       DiagResolver.instance = new DiagResolver();

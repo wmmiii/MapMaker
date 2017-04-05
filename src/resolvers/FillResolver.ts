@@ -2,10 +2,19 @@ import RegionResolver from 'RegionResolver';
 import { Region, RegionIndex } from 'Tile';
 import Vec from 'Vec';
 
+/**
+ * Resolves a selection to one or more of the fill regions. Only one type of
+ * Region will be referred to in a returned set. The type of region returned
+ * depends on the proximity of the starting coordinate to each of the regions
+ * on any tile.
+ */
 export default class FillResolver extends RegionResolver {
   private static instance: FillResolver;
   private static readonly edgeDist: number = 0.6;
 
+  /**
+   * Returns the singleton instance of the FillResolver.
+   */
   static getInstance(): FillResolver {
     if (!FillResolver.instance) {
       FillResolver.instance = new FillResolver();

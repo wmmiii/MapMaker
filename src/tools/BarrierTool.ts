@@ -6,7 +6,13 @@ import { Tool } from 'Tool';
 import * as Tile from 'Tile';
 import Vec from 'Vec';
 
-export default class WallTool implements Tool {
+/**
+ * Markes regions given by a specific RegionResolver as BARRIERs. If multiple
+ * regions are selected they are all marked as barriers. If a single region is
+ * selected it is marked as a barrier if it is not a BARRIER and marked as NONE
+ * if it is a BARRIER.
+ */
+export default class BarrierTool implements Tool {
   private app: App;
   private resolver: RegionResolver;
 
@@ -17,7 +23,6 @@ export default class WallTool implements Tool {
 
   cancel(): void {
     this.app.setHovered([]);
-    this.app.render();
   }
 
   hover(startCoords: Vec, endCoords: Vec): void {
@@ -28,7 +33,6 @@ export default class WallTool implements Tool {
         [regionIndex, Hover.ADD]);
 
     this.app.setHovered(hovered);
-    this.app.render();
   }
 
   select(startCoords: Vec, endCoords: Vec): void {
@@ -86,6 +90,5 @@ export default class WallTool implements Tool {
 
     this.app.setMap(map, message);
     this.app.setHovered([]);
-    this.app.render();
   }
 }
