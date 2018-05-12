@@ -25,7 +25,7 @@ export abstract class RegionResolver {
      * region being returned.
      * 
      * @param x The x index of the tile which contains the referenced region.
-     * @param y The x index of the tile which contains the referenced region.
+     * @param y The y index of the tile which contains the referenced region.
      * @param region Which region of the tile at [x, y] is being referenced.
      */
     protected newIndex(x: number, y: number, region: Region): RegionIndex {

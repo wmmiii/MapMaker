@@ -2,7 +2,7 @@ import Vec from 'Vec';
 
 /**
  * Tools alter the state of the map or application. The must interact with the
- * App and only the App. Tools may not be stateful.
+ * App and only the App.
  */
 export interface Tool {
   /**
